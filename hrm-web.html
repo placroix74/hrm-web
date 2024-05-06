@@ -47,22 +47,27 @@
             </tr>
         </table>
         <div id="setup-file-block">
-            <br />
             <label for="setup-file">Machine Setup: </label>
             <input type="file" id="setup-file" name="setup-file" />
-            <br />
-            <br />
         </div>
         <div id="setup-text-block" hidden>
             <div id="setup-title"></div>
             <div id="setup-descr"></div>
-            <br />
         </div>
         <div id="machine">
-            <label for="register">Register: </label><input name="register" id="register" readonly></input><br />
-            <label for="count">Instruction Count: </label><input name="count" id="count" readonly></input><br />
-            <label for="length">Program Length: </label><input name="length" id="length" readonly></input><br />
-            <br />
+            <table style="width: 100%;">
+                <tr>
+                    <th>
+                        <label for="register">Register: </label><input name="register" id="register" readonly></input>
+                    </td>
+                    <th>
+                        <label for="count">Instruction Count: </label><input name="count" id="count" readonly></input>
+                    </td>
+                    <th>
+                        <label for="length">Program Length: </label><input name="length" id="length" readonly></input>
+                    </td>
+                </tr>
+            </table>
             <table style="width: 100%;">
                 <tr>
                     <th id="input-header">Inbox</th>
