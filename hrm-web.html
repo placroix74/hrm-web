@@ -1,0 +1,1099 @@
+<html>
+    <head>
+        <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+        <style>
+            div {
+                margin-top: 1em;
+                margin-bottom: 1em;
+            }
+            table {
+                width: 100%;
+            }
+            table, th, td {
+              border:1px solid black;
+            }
+            .list {
+                width: 10em;
+            }
+            .code {
+                width: 100%;
+                text-wrap: nowrap;
+            }
+            .log {
+                width: 30em;
+            }
+            .example {
+                width: 100%;
+                resize: none;
+                overflow: hidden;
+            }
+            [changed] {
+                background-color: lightgray;
+            }
+            [hidden] {
+                display: none;
+            }
+        </style>
+    </head>
+    <body style="max-width: 1024px;">
+        <table>
+            <tr><td colspan="3" style="text-align: center;">
+                <h1>Human Resource Machine Simulator</h1>
+            </td></tr>
+            <tr>
+                <td style="text-align: center; width: 33%;"><a href="#instructions">Instructions</a></td>
+                <td style="text-align: center; width: 33%;"><a href="#opcode-reference">Programming Reference</a></td>
+                <td style="text-align: center; width: 33%;"><a href="#setup-instructions">Setup File Structure</a></td>
+            </tr>
+        </table>
+        <div id="setup-file-block">
+            <br />
+            <label for="setup-file">Machine Setup: </label>
+            <input type="file" id="setup-file" name="setup-file" />
+            <br />
+            <br />
+        </div>
+        <div id="setup-text-block" hidden>
+            <div id="setup-title"></div>
+            <div id="setup-descr"></div>
+            <br />
+        </div>
+        <div id="machine">
+            <label for="register">Register: </label><input name="register" id="register" readonly></input><br />
+            <label for="count">Instruction Count: </label><input name="count" id="count" readonly></input><br />
+            <label for="length">Program Length: </label><input name="length" id="length" readonly></input><br />
+            <br />
+            <table style="width: 100%;">
+                <tr>
+                    <th id="input-header">Inbox</th>
+                    <th>Memory</th>
+                    <th id="output-header">Outbox</th>
+                    <th>Program</th>
+                </tr>
+                <tr>
+                    <td style="width: 0%;">
+                        <select id="input" class="list" size="25"></select>
+                    </td>
+                    <td style="width: 0%;">
+                        <select id="memory" class="list" size="25"></select>
+                    </td>
+                    <td style="width: 0%;">
+                        <select id="output" class="list" size="25"></select>
+                    </td>
+                    <td>
+                        <textarea id="program" class="code" rows="25" spellcheck="false"></textarea>
+                    </td>
+                </tr>
+            </table>
+            <br />
+            <button id="compile" disabled>Compile</button>
+            <button id="step-back" disabled>Step Back</button>
+            <button id="run" disabled>Run</button>
+            <button id="stop" disabled hidden>Stop</button>
+            <button id="step" disabled>Step Fwd</button>
+            <button id="reset" disabled>Reset</button>
+            <label for="speed">Speed: </label>
+            <input id="speed" name="speed" type="range" min="0" max="1000" />
+        </div>
+        <div id="messages">
+            Messages:<br />
+            <select id="errors" class="log" size="10" style="width: 100%;"></select>
+        <div />
+        <div id="instructions">
+            <h2>Instructions</h2>
+            <ol>
+                <li>Load a setup file by pressing the "Choose File" button</li>
+                <li>Type/Paste your code into the "Program" text area</li>
+                <li>Press the "Compile" button; if there are errors, they will appear in the "Messages" list</li>
+                <li>Execute your program:</li>
+                <ul>
+                    <li>To launch the program, press the "Run" button</li>
+                    <ul>
+                        <li>To break execution of the program, press the "Stop" button</li>
+                    </ul>
+                    <li>To execute your program one command at a time, press the "Step Fwd" button</li>
+                    <li>To roll back a command (once execution has begun), press the "Step Back" button</li>
+                    <li>To restart execution from the beginning, press the "Reset" button</li>
+                </ul>
+                <li>Execution of the program stops automatically if:</li>
+                <ul>
+                    <li>A runtime error occurs; a description of the error will appear in the "Messages" list</li>
+                    <li>There is no more data to read from the Inbox, i.e. the program has run successfully to completion</li>
+                </ul>
+            </ol>
+        </div>
+        <div id="opcode-reference">
+            <h2>Programming Reference</h2>
+            <table>
+                <tr>
+                    <th colspan="2"><br />Input / Output</th>
+                </tr>
+                <tr>
+                    <td># <i>comment</i></td>
+                    <td>Anything following "#" is not considered code</td>
+                </tr>
+                <tr>
+                    <td>
+                        inbox<br />
+                        in
+                    </td>
+                    <td>Read value from Inbox into Register</td>
+                </tr>
+                <tr>
+                    <td>
+                        outbox<br />
+                        out
+                    </td>
+                    <td>Write value from Register into Outbox</td>
+                </tr>
+                <tr>
+                    <td>
+                        copy from <i>addr</i><br />
+                        from <i>addr</i>
+                    </td>
+                    <td>Read value from Memory slot <i>addr</i> into Register</td>
+                </tr>
+                <tr>
+                    <td>
+                        copy to <i>addr</i><br />
+                        to <i>addr</i>
+                    </td>
+                    <td>Write value from Register into Memory slot <i>addr</i></td>
+                </tr>
+                <tr>
+                    <th colspan="2"><br />Arithmetic</th>
+                </tr>
+                <tr>
+                    <td>add <i>addr</i></td>
+                    <td>
+                        Read value from Memory slot <i>addr</i> and add it to Register<br />
+                        <b>NOTE:</b> Applicable to values of the same type only
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        subtract <i>addr</i><br />
+                        sub <i>addr</i>
+                    </td>
+                    <td>
+                        Read value from Memory slot <i>addr</i> and subtract it from Register<br />
+                        <b>NOTE:</b> Applicable to values of the same type only
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        bump+ <i>addr</i><br />
+                        increment <i>addr</i><br />
+                        inc <i>addr</i>
+                    </td>
+                    <td>
+                        Read value from Memory slot <i>addr</i> into Register, add 1 and write back to memory<br />
+                        <b>NOTE:</b> Applicable to integer values only
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        bump- <i>addr</i><br />
+                        decrement <i>addr</i><br />
+                        dec <i>addr</i>
+                    </td>
+                    <td>
+                        Read value from Memory slot <i>addr</i> into Register, subtract 1 and write back to memory<br />
+                        <b>NOTE:</b> Applicable to integer values only
+                    </td>
+                </tr>
+                <tr>
+                    <th colspan="2"><br />Indirect Addressing</th>
+                </tr>
+                <tr>
+                    <td><i>command</i> [<i>addr</i>]</td>
+                    <td>Perform operation on Memory slot whose actual address is stored at <i>addr</i></td>
+                </tr>
+                <tr>
+                    <th colspan="2"><br />Branching</th>
+                </tr>
+                <tr>
+                    <td><i>label</i>:</td>
+                    <td>Define a jump location named <i>label</i></td>
+                </tr>
+                <tr>
+                    <td>
+                        jump <i>label</i><br />
+                        jmp <i>label</i>
+                    </td>
+                    <td>Move program execution at <i>label</i></td>
+                </tr>
+                <tr>
+                    <td>
+                        jump if zero <i>label</i><br />
+                        jump zero <i>label</i><br />
+                        jzero <i>label</i><br />
+                        jz <i>label</i>
+                    </td>
+                    <td>Move program execution at <i>label</i> if value in Register is zero</td>
+                </tr>
+                <tr>
+                    <td>
+                        jump if negative <i>label</i><br />
+                        jump negative <i>label</i><br />
+                        jump neg <i>label</i><br />
+                        jneg <i>label</i><br />
+                        jlz <i>label</i>
+                    </td>
+                    <td>Move program execution at <i>label</i> if value in Register is negative</td>
+                </tr>
+                <tr>
+                    <th colspan="2"><br />Constants</th>
+                </tr>
+                <tr>
+                    <td>
+                        define <i>label</i> <i>addr</i><br />
+                        def <i>label</i> <i>addr</i>
+                    </td>
+                    <td>Define literal constant to use as Memory slot address</td>
+                </tr>
+            </table>
+        </div>
+        <div id="setup-instructions">
+            <h2>Setup File Structure</h2>
+            A setup file is a JSON file, which defines:<br/>
+            <ul>
+                <li>The problem title</li>
+                <li>The description of the task the program should perform</li>
+                <li>A Memory initialization vector, if applicable
+                <li>A list of input/output datasets:</li>
+                <ul>
+                    <li>The initial contents of the Inbox</li>
+                    <li>The <i>expected</i> contents of the Outbox, once the program is done</li>
+                </ul>
+            </ul>
+            The Memory initialization vector, Inbox and Outbox may only contain the following values:<br/>
+            <ul>
+                <li>
+                    An empty value, e.g.: null, ""
+                </li>
+                <li>
+                    An integer number, e.g.: 10, "10"
+                </li>
+                <li>
+                    A character (A to Z), e.g.: "A", "B", etc.
+                </li>
+            </ul>
+            <b>NOTES ON MEMORY</b><br/>
+            <ul>
+                <li>There are exactly 25 slots of Memory</li>
+                <li>The initialization vector can either be defined as:
+                <ul>
+                    <li>An array up to 25 in length; if longer, extra values will be ignored</li>
+                    <li>An object with memory slot addresses as keys, e.g.: <pre>{ "24": 1, ... }</pre></li>
+                </ul>
+                <li>Unspecified/missing values will be assumed to be null</li>
+            </ul>
+            <div>
+                Example:<br />
+                <textarea readonly rows="11" class="example">{
+    "title": "Year 40: Sorting Floor",
+    "description": "Sort the input",
+    "memory": ["","","","","","","","","","","","","","","","","","","","","","","","",0],
+    "datasets": [
+        {
+            "input": [97,35,62,0,"A","W","A","K","E",0,44,16,16,23,33,40,37,39,17,22,0,15,0],
+            "output": [35,62,97,"A","A","E","K","W",16,16,17,22,23,33,37,39,40,44,15]
+        }
+    ]
+}</textarea>
+            </div>
+        </div>
+        <script>
+                $("#setup-file").on("change", function (e) {
+                    if (this.files.length === 0) {
+                        console.log('No file selected.');
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = function fileReadCompleted() {
+                    // when the reader is done, the content is in reader.result.
+                    let setup = null;
+                    try {
+                        setup = JSON.parse(reader.result)
+                    } catch (e) {
+                        logMessage(e);
+                        this.files = null;
+                        return;
+                    }
+
+                    //setup["filename"] = this.files[0];
+
+                    if (hrmInit(setup)) {
+                        hrmRender(window.hrmMachine.states[0]);
+                    } else {
+                        this.files = null;
+                    }
+
+                    updateUi();
+                };
+                reader.readAsText(this.files[0]);
+            });
+
+            $("#program").on("change", function (e) {
+                hrmResetState();
+                hrmResetProgram();
+                updateUi();
+            });
+
+            $(":button").click(function (e) {
+                switch (e.target.id) {
+                    case "compile": {
+                        hrmCompile();
+                        hrmRender();
+                    } break;
+
+                    case "step": {
+                        hrmStep();
+                        hrmRender();
+                    } break;
+
+                    case "run": {
+                        oneStep = function() {
+                            if (!hrmStep()) {
+                                this.hrmMachine.run = false;
+                                updateUi();
+                            }
+
+                            hrmRender();
+
+                            if (this.hrmMachine.run) {
+                                let delay = 1000 - $("#speed")[0].value;
+                                setTimeout(oneStep, delay);
+                            }
+                        };
+
+                        window.hrmMachine.run = true;
+                        let delay = 1000 - $("#speed")[0].value;
+                        setTimeout(oneStep, delay);
+                    } break;
+
+                    case "stop": {
+                        window.hrmMachine.run = false;
+                        updateUi();
+                    } break;
+
+                    case "reset": {
+                        hrmResetState();
+                        updateUi();
+                    } break;
+                }
+                updateUi();
+            });
+
+            function clearMessages() {
+                let uiErrors = $("#errors");
+                uiErrors[0].innerHTML = null;
+            }
+
+            function logMessage(text) {
+                let uiErrors = $("#errors");
+                let html = "<option>" + text + "</option>";
+                uiErrors.append(html);
+            }
+
+            function updateUi() {
+                if (this.hrmMachine == undefined) {
+                    $("#compile")[0].setAttribute("disabled", "");
+                    $("#step-back")[0].setAttribute("disabled", "");
+                    $("#run")[0].setAttribute("disabled", "");
+                    $("#stop")[0].setAttribute("disabled", "");
+                    $("#step")[0].setAttribute("disabled", "");
+                    $("#reset")[0].setAttribute("disabled", "");
+                } else {
+                    if (this.hrmMachine.program.length == 0) {
+                        $("#compile")[0].removeAttribute("disabled");
+                        $("#step-back")[0].setAttribute("disabled", "");
+                        $("#run")[0].setAttribute("disabled", "");
+                        $("#stop")[0].setAttribute("disabled", "");
+                        $("#step")[0].setAttribute("disabled", "");
+                        $("#reset")[0].setAttribute("disabled", "");
+                    } else {
+                        $("#run")[0].removeAttribute("disabled");
+                        $("#stop")[0].removeAttribute("disabled");
+
+                        if (this.hrmMachine.run) {
+                            $("#compile")[0].setAttribute("disabled", "");
+                            $("#step-back")[0].setAttribute("disabled", "");
+                            $("#run")[0].setAttribute("hidden", "");
+                            $("#stop")[0].removeAttribute("hidden");
+                            $("#step")[0].setAttribute("disabled", "");
+                            $("#reset")[0].setAttribute("disabled", "");
+                        } else {
+                            $("#compile")[0].setAttribute("disabled", "");
+
+                            if (this.hrmMachine.states.length > 1) {
+                                $("#step-back")[0].removeAttribute("disabled");
+                            } else {
+                                $("#step-back")[0].setAttribute("disabled", "");
+                            }
+
+                            $("#run")[0].removeAttribute("hidden");
+                            $("#stop")[0].setAttribute("hidden", "");
+                            $("#step")[0].removeAttribute("disabled");
+                            $("#reset")[0].removeAttribute("disabled");
+                        }
+                    }
+                }
+            }
+
+            function hrmInit(setup) {
+                clearMessages();
+
+                // initialize machine
+
+                this.hrmMachine = new Object();
+                this.hrmMachine.states = [];
+                this.hrmMachine.program = [];
+                this.hrmMachine.programLines = [];
+                this.hrmMachine.aliases = [];
+                this.hrmMachine.output = null;
+                this.hrmMachine.run = false;
+
+                // initial state
+
+                let state = new Object();
+                state.register = null;
+                state.input = [];
+                state.memory = [];
+                state.output = [];
+
+                let hasErrors = false;
+
+                for (entry of setup.datasets[0].input.reverse().entries()) {
+                    try {
+                        state.input.push(parseItem(entry[1]));
+                    } catch (e) {
+                        logMessage("Invalid input value #" + entry[0] + " : " + entry[1]);
+                        hasErrors = true;
+                    }
+                }
+
+                for (i = 0; i < 25; ++i) {
+                    try {
+                        state.memory.push(parseItem(setup.memory[i]));
+                    } catch (e) {
+                        logMessage("Invalid memory value #" + entry[0] + " : " + entry[1]);
+                        hasErrors = true;
+                    }
+                }
+                while (state.memory.length < 25) {
+                    state.memory.push(null);
+                }
+
+                if (setup.datasets[0].output != undefined) {
+                    this.hrmMachine.output = [];
+
+                    for (entry of setup.datasets[0].output.entries()) {
+                        try {
+                            this.hrmMachine.output.push(parseItem(entry[1]));
+                        } catch (e) {
+                            logMessage("Invalid output value #" + entry[0] + " : " + entry[1]);
+                            hasErrors = true;
+                        }
+                    }
+                }
+
+                if (hasErrors) {
+                    this.hrmMachine = undefined;
+                    return false;
+                }
+
+                state.output = [];
+                state.next = 0;
+                state.count = 0;
+
+                state.error = null;
+                state.halted = false;
+                state.register_changed = false;
+                state.output_changed = false;
+                state.memory_changed = false;
+
+                this.hrmMachine.states.push(state);
+
+                // Problem text
+                $("#setup-file-block")[0].setAttribute("hidden", "");
+
+                if (setup.title.length > 0 || setup.description.length > 0) {
+                    $("#setup-text-block")[0].removeAttribute("hidden");
+
+                    if (setup.title.length > 0) {
+                        $("#setup-title")[0].innerHTML = "<h2>" + setup.title + "</h2>";
+                    }
+
+                    if (setup.description.length > 0) {
+                        $("#setup-descr")[0].innerHTML = setup.description;
+                    }
+                }
+
+                return true;
+            }
+
+            function parseItem(item) {
+                if (item == undefined) {
+                    return null;
+                }
+                if (item == null || Number.isInteger(item)) {
+                    return item;
+                }
+                item = item.trim();
+                if (item === "") {
+                    return null;
+                }
+                // integer as string
+                let value = Number.parseInt(item);
+                if (value.toString() == item.trim()) {
+                    return value;
+                }
+                // must be a single character
+                if (item.length == 1) {
+                    return item.toUpperCase();
+                }
+                throw new Error();
+            }
+
+            function hrmRender(state) {
+                if (state == undefined) {
+                    state = this.hrmMachine.states[this.hrmMachine.states.length - 1];
+                }
+
+                // register
+
+                let uiRegister = $("#register");
+                uiRegister[0].value = state.register ?? "";
+
+                if (state.register_changed) {
+                    uiRegister[0].setAttribute("changed", "");
+                } else {
+                    uiRegister[0].removeAttribute("changed");
+                }
+
+                // instruction count
+
+                $("#count")[0].value = state.count;
+
+                // input
+
+                let uiInput = $("#input");
+                uiInput[0].innerHTML = null;
+
+                for (item of state.input.toReversed()) {
+                    let html = "<option>" + (item ?? "") + "</option>";
+                    uiInput.append(html);
+                }
+
+                let uiHeader = $("#input-header");
+                if (state.input_changed) {
+                    uiHeader[0].setAttribute("changed", "");
+                } else {
+                    uiHeader[0].removeAttribute("changed");
+                }
+
+                // memory
+
+                let uiMemory = $("#memory");
+                uiMemory[0].innerHTML = null;
+
+                for (entry of state.memory.entries()) {
+                    let item = entry[1];
+                    let alias = this.hrmMachine.aliases[entry[0]];
+                    alias = (alias == undefined) ? "" : ": " + alias;
+                    let html = "<option>" + (item ?? "") + alias + "</option>";
+                    uiMemory.append(html);
+                }
+
+                if (state.memory_changed !== false) {
+                    let uiMemorySlot = uiMemory[0].children.item(state.memory_changed);
+                    uiMemorySlot.setAttribute("changed", "");
+                }
+
+                // output
+
+                let uiOutput = $("#output");
+                uiOutput[0].innerHTML = null;
+
+                for (item of state.output.toReversed()) {
+                    let html = "<option>" + (item ?? "") + "</option>";
+                    uiOutput.append(html);
+                }
+
+                let uiOutputHeader = $("#output-header")[0];
+                if (state.output_changed) {
+                    uiOutputHeader.setAttribute("changed", "");
+                } else {
+                    uiOutputHeader.removeAttribute("changed");
+                }
+
+                // next instruction
+
+                let uiProgram = $("#program");
+                let lines = this.hrmMachine.programLines;
+                uiProgram[0].selectionStart = lines[state.next];
+                uiProgram[0].selectionEnd = lines[state.next + 1];
+                uiProgram[0].focus();
+            }
+
+            function hrmValidateOutput(state) {
+                if (this.hrmMachine.output == null) {
+                    return;
+                }
+                for (entry of state.output.entries()) {
+                    if (entry[1] != this.hrmMachine.output[entry[0]])
+                        state.error = "Unexpected output: " + entry[1];
+                }
+            }
+
+            function hrmValidateFinalOutput(state) {
+                if (this.hrmMachine.output == null) {
+                    return;
+                }
+                hrmValidateOutput(state);
+                if (state.error === false && nextState.output.length != this.hrmMachine.output.length) {
+                    state.error('Missing output');
+                }
+            }
+
+            function hrmCompile() {
+                clearMessages();
+
+                if (this.hrmMachine == undefined) {
+                    logMessage("Machine not initialized; choose file above");
+                    return false;
+                }
+
+                if (this.hrmMachine.program.length > 0) {
+                    return true;
+                }
+
+                let hasErrors = false;
+                this.hrmMachine.program = [];
+                this.hrmMachine.programLines = [];
+                this.hrmMachine.aliases = [];
+
+                let aliases = new Object();
+                let labels = new Object();
+                let uiProgram = $("#program");
+                let programText = uiProgram[0].value;
+
+                let lineStart = 0;
+
+                for (line of programText.split('\n')) {
+                    this.hrmMachine.programLines.push(lineStart);
+                    lineStart += line.length + 1;
+
+                    line = line
+                        .replace(/\s+/g, '')  // remove all whitespace
+                        .replace(/#.*$/g, '');  // remove comment
+
+                    if (line == '') {
+                        this.hrmMachine.program.push(["NoOp"]);
+                        continue;
+                    }
+
+                    let result = null;
+
+                    result = line.matchAll(/^DEF(INE)?([A-Z_\-]+)(\d+)$/gi).next();
+                    if (!result.done) {
+                        let tag = result.value[2];
+                        let addr = result.value[3];
+                        aliases[tag.toUpperCase()] = Number.parseInt(addr);
+                        this.hrmMachine.aliases[addr] = tag;
+                        this.hrmMachine.program.push(["NoOp"]);
+                        continue;
+                    }
+
+                    result = line.matchAll(/^([A-Z_\-]+):$/gi).next();
+                    if (!result.done) {
+                        labels[result.value[1].toUpperCase()] = this.hrmMachine.program.length;
+                        this.hrmMachine.program.push(["NoOp"]);
+                        continue;
+                    }
+
+                    result = line.matchAll(/^IN(BOX)?$/gi).next();
+                    if (!result.done) {
+                        this.hrmMachine.program.push(["Inbox"]);
+                        continue;
+                    }
+
+                    result = line.matchAll(/^OUT(BOX)?$/gi).next();
+                    if (!result.done) {
+                        this.hrmMachine.program.push(["Outbox"]);
+                        continue;
+                    }
+
+                    result = line.matchAll(/^(COPY)?FROM(\[(\d+|[A-Z_\-]+)\]|(\d+|[A-Z_\-]+))$/gi).next();
+                    if (!result.done) {
+                        this.hrmMachine.program.push((result.value[3] == undefined) ?
+                            ["CopyFrom", result.value[4]] : ["pCopyFrom", result.value[3]]
+                        );
+                        continue;
+                    }
+
+                    result = line.matchAll(/^(COPY)?TO(\[(\d+|[A-Z_\-]+)\]|(\d+|[A-Z_\-]+))$/gi).next();
+                    if (!result.done) {
+                        this.hrmMachine.program.push((result.value[3] == undefined) ?
+                            ["CopyTo", result.value[4]] : ["pCopyTo", result.value[3]]
+                        );
+                        continue;
+                    }
+
+                    result = line.matchAll(/^ADD(\[(\d+|[A-Z_\-]+)\]|(\d+|[A-Z_\-]+))$/gi).next();
+                    if (!result.done) {
+                        this.hrmMachine.program.push((result.value[2] == undefined) ?
+                            ["Add", result.value[3]] : ["pAdd", result.value[2]]
+                        );
+                        continue;
+                    }
+
+                    result = line.matchAll(/^SUB(TRACT)?(\[(\d+|[A-Z_\-]+)\]|(\d+|[A-Z_\-]+))$/gi).next();
+                    if (!result.done) {
+                        this.hrmMachine.program.push((result.value[3] == undefined) ?
+                            ["Subtract", result.value[4]] : ["pSubtract", result.value[3]]
+                        );
+                        continue;
+                    }
+
+                    result = line.matchAll(/^(J(U)?MP)([A-Z_\-]+)$/gi).next();
+                    if (!result.done) {
+                        this.hrmMachine.program.push(["Jump", result.value[3]]);
+                        continue;
+                    }
+
+                    result = line.matchAll(/^(J(UMP(IF)?)?Z(ERO)?)([A-Z_\-]+)$/gi).next();
+                    if (!result.done) {
+                        this.hrmMachine.program.push(["JumpIfZero", result.value[5]]);
+                        continue;
+                    }
+
+                    result = line.matchAll(/^(J(UMP(IF)?)?NEG(ATIVE)?|JLZ)([A-Z_\-]+)$/gi).next();
+                    if (!result.done) {
+                        this.hrmMachine.program.push(["JumpIfNegative", result.value[5]]);
+                        continue;
+                    }
+
+                    result = line.matchAll(/^(BUMP\+|INC(REMENT)?)(\[(\d+|[A-Z_\-]+)\]|(\d+|[A-Z_\-]+))$/gi).next();
+                    if (!result.done) {
+                        this.hrmMachine.program.push((result.value[4] == undefined) ?
+                            ["Increment", result.value[5]] : ["pIncrement", result.value[3]]
+                        );
+                        continue;
+                    }
+
+                    result = line.matchAll(/^(BUMP-|DEC(REMENT)?)(\[(\d+|[A-Z_\-]+)\]|(\d+|[A-Z_\-]+))$/gi).next();
+                    if (!result.done) {
+                        this.hrmMachine.program.push((result.value[4] == undefined) ?
+                            ["Decrement", result.value[5]] : ["pDecrement", result.value[3]]
+                        );
+                        continue;
+                    }
+
+                    // error
+
+                    logMessage("Line " + (this.hrmMachine.program.length + 1) + ": Syntax error");
+                    hasErrors = true;
+
+                    this.hrmMachine.program.push(["NoOp"]);
+                }
+
+                this.hrmMachine.programLines.push(programText.length);
+
+                // resolve addresses / map labels and aliases
+
+                for (entry of this.hrmMachine.program.entries()) {
+                    let item = entry[1];
+                    switch (item[0]) {
+                        case "CopyFrom":
+                        case "pCopyFrom":
+                        case "CopyTo":
+                        case "pCopyTo":
+                        case "Increment":
+                        case "pIncrement":
+                        case "Decrement":
+                        case "pDecrement":
+                        case "Add":
+                        case "pAdd":
+                        case "Subtract":
+                        case "pSubtract": {
+                            let location = Number.parseInt(item[1]);
+                            if (location.toString() === item[1]) {
+                                item[1] = location;  // address is a number
+                            } else {
+                                location = aliases[item[1].toUpperCase()];
+                                if (location == undefined) {
+                                    logMessage("Line " + (entry[0] + 1) + ": Unrecognized memory alias: \"" + item[1] + "\"");
+                                    hasErrors = true;
+                                } else {
+                                    item[1] = location;
+                                }
+                            }
+                        } break;
+
+                        case "Jump":
+                        case "JumpIfZero":
+                        case "JumpIfNegative": {
+                            let location = labels[item[1].toUpperCase()];
+                            if (location == undefined) {
+                                logMessage("Line " + (entry[0] + 1) + ": Unrecognized jump location: \"" + item[1] + ":\"");
+                                hasErrors = true;
+                            } else {
+                                item[1] = location;
+                            }
+                        } break;
+                    }
+                }
+
+                // remove trailing NOP's
+                while (this.hrmMachine.program[this.hrmMachine.program.length - 1][0] == "NoOp")
+                    this.hrmMachine.program.pop();
+
+                if (hasErrors) {
+                    hrmResetProgram();
+                    return false;
+                }
+
+                let length = 0;
+                for (item of this.hrmMachine.program) {
+                    if (item[0] == "NoOp")
+                        continue;
+                    ++length;
+                }
+                $("#length")[0].value = length;
+
+                return true;
+            }
+
+            function hrmResetState() {
+                if (this.hrmMachine != undefined) {
+                    this.hrmMachine.states = this.hrmMachine.states.slice(0, 1);
+                    hrmRender();
+                }
+                clearMessages();
+            }
+
+            function hrmResetProgram() {
+                if (this.hrmMachine != undefined) {
+                    this.hrmMachine.program = [];
+                    $("#length")[0].value = null;
+                }
+            }
+
+            function hrmStepBack() {
+                if (this.hrmMachine.states.length <= 1) {
+                    return;
+                }
+
+                this.hrmMachine.states.pop();
+
+                hrmRender();
+                updateUi();
+            }
+
+
+            function hrmStep() {
+                clearMessages();
+
+                let state = this.hrmMachine.states[this.hrmMachine.states.length - 1];
+                let instruction = this.hrmMachine.program[state.next];
+                if (instruction == undefined) {
+                    logMessage("Machine ran out of code");
+                    return false;
+                }
+
+                if (state.halted)
+                    return true;
+
+                let nextState = hrmExec(state, instruction);
+                //hrmRender(nextState);
+
+                if (nextState.halted) {
+                    hrmValidateFinalOutput(nextState);
+                    logMessage(nextState.error ?? "No more input");
+                    return false;
+                }
+
+                hrmValidateOutput(nextState);
+                this.hrmMachine.states.push(nextState);
+
+                if (nextState.error != null) {
+                    logMessage(nextState.error);
+                    return false;
+                }
+
+                return true;
+            }
+
+            function hrmExec(state, instruction) {
+                // indirect addressing
+
+                switch (instruction[0]) {
+                    case "pCopyFrom":
+                    case "pCopyTo":
+                    case "pAdd":
+                    case "pSubtract":
+                    case "pIncrement":
+                    case "pDecrement": {
+                        return hrmExec(state,
+                            [instruction[0].slice(1), state.memory[instruction[1]]
+                        ])
+                    }
+                }
+
+                state = JSON.parse(JSON.stringify(state));
+
+                state.register_changed = false;
+                state.input_changed = false;
+                state.output_changed = false;
+                state.memory_changed = false;
+
+                // direct addressing
+
+                let value = undefined;
+
+                switch (instruction[0]) {
+                    case "CopyFrom":
+                    case "Add":
+                    case "Subtract":
+                    case "Increment":
+                    case "Decrement": {
+                        value = state.memory[instruction[1]];
+                        if (value == null) {
+                            state.error = "Line " + state.next + ": No value at address " + instruction[1];
+                            return state;
+                        }
+                    } break;
+                }
+
+                // register usage
+
+                switch (instruction[0]) {
+                    case "CopyTo":
+                    case "Add":
+                    case "Subtract": {
+                        if (state.register == null) {
+                            state.error = "Line " + state.next + ": No value in register";
+                            return state;
+                        }
+                    } break;
+                }
+
+                // operand type
+
+                switch (instruction[0]) {
+                    case "Subtract": {
+                        if (typeof(value) != typeof(state.register)) {
+                            state.error = "Line " + state.next + ": Cannot perform on: " + state.register + ", " + value;
+                            return state;
+                        }
+                    } break;
+
+                    case "Add": {
+                        if (!Number.isInteger(state.register)) {
+                            state.error = "Line " + state.next + ": Cannot perform on: " + state.register;
+                            return state;
+                        }
+                    } // fall through
+
+                    case "Increment":
+                    case "Decrement": {
+                        if (!Number.isInteger(value)) {
+                            state.error = "Line " + state.next + ": Cannot perform on: " + value;
+                            return state;
+                        }
+                    } break;
+                }
+
+                // execute step
+
+                switch (instruction[0]) {
+                    case "NoOp": {
+                        ++state.next;
+                        return state;
+                    }
+
+                    case "Inbox": {
+                        let input = state.input.pop();
+                        if (input == undefined) {
+                            state.halted = true;
+                        } else {
+                            state.register = input;
+                            state.register_changed = true;
+                            state.input_changed = true;
+                        }
+                    } break;
+
+                    case "Outbox": {
+                        state.output.push(state.register);
+                        state.register_changed = true;
+                        state.output_changed = true;
+                    } break;
+
+                    case "CopyFrom": {
+                        state.register = value;
+                        state.register_changed = true;
+                        state.memory_changed = instruction[1];
+                    } break;
+
+                    case "CopyTo": {
+                        state.memory[instruction[1]] = state.register;
+                        state.register_changed = true;
+                        state.memory_changed = instruction[1];
+                    } break;
+
+                    case "Add": {
+                        state.register += value;
+                        state.register_changed = true;
+                        state.memory_changed = instruction[1];
+                    } break;
+
+                    case "Subtract": {
+                        state.register = (Number.isInteger(value)) ?
+                            state.register - value : state.register.charCodeAt(0) - value.charCodeAt(0);
+                        state.register_changed = true;
+                        state.memory_changed = instruction[1];
+                    } break;
+
+                    case "Increment": {
+                        state.register = state.memory[instruction[1]] = value + 1;
+                        state.register_changed = true;
+                        state.memory_changed = instruction[1];
+                    } break;
+
+                    case "Decrement": {
+                        state.register = state.memory[instruction[1]] = value - 1;
+                        state.register_changed = true;
+                        state.memory_changed = instruction[1];
+                    } break;
+                }
+
+                // set next instruction pointer
+
+                switch (instruction[0]) {
+                    case "Jump": {
+                        state.next = instruction[1];
+                    } break;
+
+                    case "JumpIfZero": {
+                        state.next = (state.register == 0) ? instruction[1] : state.next + 1;
+                    } break;
+
+                    case "JumpIfNegative": {
+                        state.next = (state.register < 0) ? instruction[1] : state.next + 1;
+                    } break;
+
+                    default: {
+                        ++state.next;
+                    }
+                }
+
+                ++state.count;
+                return state;
+            }
+        </script>
+    </body>
+</html>

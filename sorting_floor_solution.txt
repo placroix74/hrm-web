@@ -1,0 +1,42 @@
+def cnt 20
+def cmp 21
+def swap 22
+def input 23
+def zero 24
+in:
+from zero
+to cnt
+in
+to [cnt]
+inc cnt
+loop:
+in
+jz out
+to input
+sort:
+from cnt
+to swap
+to cmp
+dec cmp
+compare:
+from input
+sub [cmp]
+jlz insert
+swap:
+from [cmp]
+to [swap]
+dec swap
+dec cmp
+jlz insert
+jmp compare
+insert:
+from input
+to [swap]
+inc cnt
+jmp loop
+out:
+dec cnt
+jlz in
+from [cnt]
+out
+jump out
