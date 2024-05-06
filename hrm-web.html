@@ -97,7 +97,7 @@
         </div>
         <div id="messages">
             Messages:<br />
-            <select id="errors" class="log" size="10" style="width: 100%;"></select>
+            <select id="message-list" class="log" size="10" style="width: 100%;"></select>
         <div />
         <div id="instructions">
             <h2>Instructions</h2>
@@ -342,6 +342,17 @@
                 updateUi();
             });
 
+            $("#message-list").on("change", function (e) {
+                let uiMessages = $("#message-list")[0];
+                let value = uiMessages.value;
+
+                uiMessages.selectedIndex = -1;
+
+                if (value != "undefined") {
+                    selectProgramLine(value);
+                }
+            });
+
             $(":button").click(function (e) {
                 switch (e.target.id) {
                     case "compile": {
@@ -388,14 +399,14 @@
             });
 
             function clearMessages() {
-                let uiErrors = $("#errors");
-                uiErrors[0].innerHTML = null;
+                let uiMessages = $("#message-list");
+                uiMessages[0].innerHTML = null;
             }
 
-            function logMessage(text) {
-                let uiErrors = $("#errors");
-                let html = "<option>" + text + "</option>";
-                uiErrors.append(html);
+            function logMessage(text, value) {
+                let uiMessages = $("#message-list");
+                let html = "<option value=" + value + ">" + text + "</option>";
+                uiMessages.append(html);
             }
 
             function updateUi() {
@@ -452,7 +463,7 @@
                 this.hrmMachine.states = [];
                 this.hrmMachine.program = [];
                 this.hrmMachine.programLines = [];
-                this.hrmMachine.aliases = [];
+                this.hrmMachine.constants = [];
                 this.hrmMachine.output = null;
                 this.hrmMachine.run = false;
 
@@ -602,7 +613,7 @@
 
                 for (entry of state.memory.entries()) {
                     let item = entry[1];
-                    let alias = this.hrmMachine.aliases[entry[0]];
+                    let alias = this.hrmMachine.constants[entry[0]];
                     alias = (alias == undefined) ? "" : ": " + alias;
                     let html = "<option>" + (item ?? "") + alias + "</option>";
                     uiMemory.append(html);
@@ -631,12 +642,25 @@
                 }
 
                 // next instruction
+                selectProgramLine(state.next);
+            }
 
+            function selectProgramLine(line) {
                 let uiProgram = $("#program");
+
+                // line positions
+                line = Number.parseInt(line);
                 let lines = this.hrmMachine.programLines;
-                uiProgram[0].selectionStart = lines[state.next];
-                uiProgram[0].selectionEnd = lines[state.next + 1];
+                let start = lines[line];
+                let end = lines[line + 1];
+
+                // scroll line into view
+                uiProgram[0].setSelectionRange(start, start);
+                uiProgram[0].blur();
                 uiProgram[0].focus();
+
+                // select line
+                uiProgram[0].setSelectionRange(start, end);
             }
 
             function hrmValidateOutput(state) {
@@ -674,9 +698,9 @@
                 let hasErrors = false;
                 this.hrmMachine.program = [];
                 this.hrmMachine.programLines = [];
-                this.hrmMachine.aliases = [];
+                this.hrmMachine.constants = [];
 
-                let aliases = new Object();
+                let constants = new Object();
                 let labels = new Object();
                 let uiProgram = $("#program");
                 let programText = uiProgram[0].value;
@@ -702,8 +726,8 @@
                     if (!result.done) {
                         let tag = result.value[2];
                         let addr = result.value[3];
-                        aliases[tag.toUpperCase()] = Number.parseInt(addr);
-                        this.hrmMachine.aliases[addr] = tag;
+                        constants[tag.toUpperCase()] = Number.parseInt(addr);
+                        this.hrmMachine.constants[addr] = tag;
                         this.hrmMachine.program.push(["NoOp"]);
                         continue;
                     }
@@ -795,7 +819,7 @@
 
                     // error
 
-                    logMessage("Line " + (this.hrmMachine.program.length + 1) + ": Syntax error");
+                    logMessage("Line " + (this.hrmMachine.program.length + 1) + ": Syntax error", this.hrmMachine.program.length);
                     hasErrors = true;
 
                     this.hrmMachine.program.push(["NoOp"]);
@@ -803,7 +827,7 @@
 
                 this.hrmMachine.programLines.push(programText.length);
 
-                // resolve addresses / map labels and aliases
+                // resolve addresses / map labels and constants
 
                 for (entry of this.hrmMachine.program.entries()) {
                     let item = entry[1];
@@ -824,9 +848,9 @@
                             if (location.toString() === item[1]) {
                                 item[1] = location;  // address is a number
                             } else {
-                                location = aliases[item[1].toUpperCase()];
+                                location = constants[item[1].toUpperCase()];
                                 if (location == undefined) {
-                                    logMessage("Line " + (entry[0] + 1) + ": Unrecognized memory alias: \"" + item[1] + "\"");
+                                    logMessage("Line " + (entry[0] + 1) + ": Unrecognized constant: \"" + item[1] + "\"", entry[0]);
                                     hasErrors = true;
                                 } else {
                                     item[1] = location;
@@ -839,7 +863,7 @@
                         case "JumpIfNegative": {
                             let location = labels[item[1].toUpperCase()];
                             if (location == undefined) {
-                                logMessage("Line " + (entry[0] + 1) + ": Unrecognized jump location: \"" + item[1] + ":\"");
+                                logMessage("Line " + (entry[0] + 1) + ": Unrecognized jump location: \"" + item[1] + ":\"", entry[0]);
                                 hasErrors = true;
                             } else {
                                 item[1] = location;
@@ -848,15 +872,16 @@
                     }
                 }
 
-                // remove trailing NOP's
-                while (this.hrmMachine.program[this.hrmMachine.program.length - 1][0] == "NoOp")
-                    this.hrmMachine.program.pop();
-
                 if (hasErrors) {
                     hrmResetProgram();
                     return false;
                 }
 
+                // remove trailing NOP's
+                while (this.hrmMachine.program[this.hrmMachine.program.length - 1][0] == "NoOp")
+                    this.hrmMachine.program.pop();
+
+                // program length
                 let length = 0;
                 for (item of this.hrmMachine.program) {
                     if (item[0] == "NoOp")
