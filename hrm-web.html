@@ -946,7 +946,7 @@
                 this.hrmMachine.states.push(nextState);
 
                 if (nextState.error != null) {
-                    logMessage(nextState.error);
+                    logMessage("Line " + (nextState.next + 1) + ": " + nextState.error, nextState.next);
                     return false;
                 }
 
@@ -988,7 +988,7 @@
                     case "Decrement": {
                         value = state.memory[instruction[1]];
                         if (value == null) {
-                            state.error = "Line " + state.next + ": No value at address " + instruction[1];
+                            state.error = "No value at address " + instruction[1];
                             return state;
                         }
                     } break;
@@ -1001,7 +1001,7 @@
                     case "Add":
                     case "Subtract": {
                         if (state.register == null) {
-                            state.error = "Line " + state.next + ": No value in register";
+                            state.error = "No value in register";
                             return state;
                         }
                     } break;
@@ -1012,14 +1012,14 @@
                 switch (instruction[0]) {
                     case "Subtract": {
                         if (typeof(value) != typeof(state.register)) {
-                            state.error = "Line " + state.next + ": Cannot perform on: " + state.register + ", " + value;
+                            state.error = "Cannot perform on: " + state.register + ", " + value;
                             return state;
                         }
                     } break;
 
                     case "Add": {
                         if (!Number.isInteger(state.register)) {
-                            state.error = "Line " + state.next + ": Cannot perform on: " + state.register;
+                            state.error = "Cannot perform on: " + state.register;
                             return state;
                         }
                     } // fall through
@@ -1027,7 +1027,7 @@
                     case "Increment":
                     case "Decrement": {
                         if (!Number.isInteger(value)) {
-                            state.error = "Line " + state.next + ": Cannot perform on: " + value;
+                            state.error = "Cannot perform on: " + value;
                             return state;
                         }
                     } break;
