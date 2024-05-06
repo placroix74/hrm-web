@@ -86,7 +86,6 @@
                 </tr>
             </table>
             <br />
-            <button id="compile" disabled>Compile</button>
             <button id="step-back" disabled>Step Back</button>
             <button id="run" disabled>Run</button>
             <button id="stop" disabled hidden>Stop</button>
@@ -104,7 +103,6 @@
             <ol>
                 <li>Load a setup file by pressing the "Choose File" button</li>
                 <li>Type/Paste your code into the "Program" text area</li>
-                <li>Press the "Compile" button; if there are errors, they will appear in the "Messages" list</li>
                 <li>Execute your program:</li>
                 <ul>
                     <li>To launch the program, press the "Run" button</li>
@@ -335,10 +333,10 @@
                 reader.readAsText(this.files[0]);
             });
 
-            $("#program").on("change", function (e) {
-                hrmResetState();
-                hrmResetProgram();
-                updateUi();
+            $("#program").on("keyup", function (e) {
+                if (!$("#program")[0].hasAttribute("readonly")) {
+                    window.hrmMachine.programChanged = true;
+                }
             });
 
             $("#message-list").on("change", function (e) {
@@ -353,11 +351,17 @@
             });
 
             $(":button").click(function (e) {
-                switch (e.target.id) {
-                    case "compile": {
-                        hrmCompile();
-                    } break;
+                if (window.hrmMachine.programChanged) {
+                    hrmResetState();
 
+                    if (!hrmCompile()) {
+                        return;
+                    }
+
+                    window.hrmMachine.programChanged = false;
+                }
+
+                switch (e.target.id) {
                     case "step": {
                         hrmStep();
                     } break;
@@ -368,25 +372,25 @@
 
                     case "run": {
                         oneStep = function() {
-                            if (!hrmStep()) {
-                                this.hrmMachine.run = false;
+                            if (hrmStep()) {
+                                let delay = 1000 - $("#speed")[0].value;
+                                window.hrmMachine.timeoutID = setTimeout(oneStep, delay);
+                            } else {
+                                hrmStop();
                             }
 
                             hrmRender();
-
-                            if (this.hrmMachine.run) {
-                                let delay = 1000 - $("#speed")[0].value;
-                                setTimeout(oneStep, delay);
-                            }
+                            updateUi();
                         };
 
-                        window.hrmMachine.run = true;
+                        $("#program")[0].setAttribute("readonly", "");
+
                         let delay = 1000 - $("#speed")[0].value;
-                        setTimeout(oneStep, delay);
+                        window.hrmMachine.timeoutID = setTimeout(oneStep, delay);
                     } break;
 
                     case "stop": {
-                        window.hrmMachine.run = false;
+                        hrmStop();
                     } break;
 
                     case "reset": {
@@ -411,45 +415,32 @@
 
             function updateUi() {
                 if (this.hrmMachine == undefined) {
-                    $("#compile")[0].setAttribute("disabled", "");
                     $("#step-back")[0].setAttribute("disabled", "");
                     $("#run")[0].setAttribute("disabled", "");
                     $("#stop")[0].setAttribute("disabled", "");
                     $("#step")[0].setAttribute("disabled", "");
                     $("#reset")[0].setAttribute("disabled", "");
                 } else {
-                    if (this.hrmMachine.program.length == 0) {
-                        $("#compile")[0].removeAttribute("disabled");
+                    $("#run")[0].removeAttribute("disabled");
+                    $("#stop")[0].removeAttribute("disabled");
+
+                    if (this.hrmMachine.timeoutID != null) {
                         $("#step-back")[0].setAttribute("disabled", "");
-                        $("#run")[0].setAttribute("disabled", "");
-                        $("#stop")[0].setAttribute("disabled", "");
+                        $("#run")[0].setAttribute("hidden", "");
+                        $("#stop")[0].removeAttribute("hidden");
                         $("#step")[0].setAttribute("disabled", "");
                         $("#reset")[0].setAttribute("disabled", "");
                     } else {
-                        $("#run")[0].removeAttribute("disabled");
-                        $("#stop")[0].removeAttribute("disabled");
-
-                        if (this.hrmMachine.run) {
-                            $("#compile")[0].setAttribute("disabled", "");
-                            $("#step-back")[0].setAttribute("disabled", "");
-                            $("#run")[0].setAttribute("hidden", "");
-                            $("#stop")[0].removeAttribute("hidden");
-                            $("#step")[0].setAttribute("disabled", "");
-                            $("#reset")[0].setAttribute("disabled", "");
+                        if (this.hrmMachine.states.length > 1) {
+                            $("#step-back")[0].removeAttribute("disabled");
                         } else {
-                            $("#compile")[0].setAttribute("disabled", "");
-
-                            if (this.hrmMachine.states.length > 1) {
-                                $("#step-back")[0].removeAttribute("disabled");
-                            } else {
-                                $("#step-back")[0].setAttribute("disabled", "");
-                            }
-
-                            $("#run")[0].removeAttribute("hidden");
-                            $("#stop")[0].setAttribute("hidden", "");
-                            $("#step")[0].removeAttribute("disabled");
-                            $("#reset")[0].removeAttribute("disabled");
+                            $("#step-back")[0].setAttribute("disabled", "");
                         }
+
+                        $("#run")[0].removeAttribute("hidden");
+                        $("#stop")[0].setAttribute("hidden", "");
+                        $("#step")[0].removeAttribute("disabled");
+                        $("#reset")[0].removeAttribute("disabled");
                     }
                 }
             }
@@ -463,9 +454,10 @@
                 this.hrmMachine.states = [];
                 this.hrmMachine.program = [];
                 this.hrmMachine.programLines = [];
+                this.hrmMachine.programChanged = false;
                 this.hrmMachine.constants = [];
                 this.hrmMachine.output = null;
-                this.hrmMachine.run = false;
+                this.hrmMachine.timeoutID = null;
 
                 // initial state
 
@@ -686,15 +678,6 @@
             function hrmCompile() {
                 clearMessages();
 
-                if (this.hrmMachine == undefined) {
-                    logMessage("Machine not initialized; choose file above");
-                    return false;
-                }
-
-                if (this.hrmMachine.program.length > 0) {
-                    return true;
-                }
-
                 let hasErrors = false;
                 this.hrmMachine.program = [];
                 this.hrmMachine.programLines = [];
@@ -873,7 +856,8 @@
                 }
 
                 if (hasErrors) {
-                    hrmResetProgram();
+                    this.hrmMachine.program = [];
+                    $("#length")[0].value = null;
                     return false;
                 }
 
@@ -905,6 +889,15 @@
                     this.hrmMachine.program = [];
                     $("#length")[0].value = null;
                 }
+            }
+
+            function hrmStop() {
+                if (window.hrmMachine.timeoutID != null) {
+                    clearTimeout(window.hrmMachine.timeoutID);
+                }
+
+                window.hrmMachine.timeoutID = null;
+                $("#program")[0].removeAttribute("readonly");
             }
 
             function hrmStepBack() {
