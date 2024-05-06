@@ -325,12 +325,11 @@
 
                     //setup["filename"] = this.files[0];
 
-                    if (hrmInit(setup)) {
-                        hrmRender(window.hrmMachine.states[0]);
-                    } else {
+                    if (!hrmInit(setup)) {
                         this.files = null;
                     }
 
+                    hrmRender();
                     updateUi();
                 };
                 reader.readAsText(this.files[0]);
@@ -357,19 +356,20 @@
                 switch (e.target.id) {
                     case "compile": {
                         hrmCompile();
-                        hrmRender();
                     } break;
 
                     case "step": {
                         hrmStep();
-                        hrmRender();
+                    } break;
+
+                    case "step-back": {
+                        hrmStepBack();
                     } break;
 
                     case "run": {
                         oneStep = function() {
                             if (!hrmStep()) {
                                 this.hrmMachine.run = false;
-                                updateUi();
                             }
 
                             hrmRender();
@@ -387,14 +387,14 @@
 
                     case "stop": {
                         window.hrmMachine.run = false;
-                        updateUi();
                     } break;
 
                     case "reset": {
                         hrmResetState();
-                        updateUi();
                     } break;
                 }
+
+                hrmRender();
                 updateUi();
             });
 
@@ -896,7 +896,6 @@
             function hrmResetState() {
                 if (this.hrmMachine != undefined) {
                     this.hrmMachine.states = this.hrmMachine.states.slice(0, 1);
-                    hrmRender();
                 }
                 clearMessages();
             }
@@ -913,10 +912,9 @@
                     return;
                 }
 
-                this.hrmMachine.states.pop();
+                clearMessages();
 
-                hrmRender();
-                updateUi();
+                this.hrmMachine.states.pop();
             }
 
 
@@ -934,7 +932,12 @@
                     return true;
 
                 let nextState = hrmExec(state, instruction);
-                //hrmRender(nextState);
+
+                if (nextState.error != null) {
+                    logMessage("Line " + (nextState.next + 1) + ": " + nextState.error, nextState.next);
+                    nextState.halted = true;
+                    return false;
+                }
 
                 if (nextState.halted) {
                     hrmValidateFinalOutput(nextState);
@@ -943,13 +946,8 @@
                 }
 
                 hrmValidateOutput(nextState);
+
                 this.hrmMachine.states.push(nextState);
-
-                if (nextState.error != null) {
-                    logMessage("Line " + (nextState.next + 1) + ": " + nextState.error, nextState.next);
-                    return false;
-                }
-
                 return true;
             }
 
