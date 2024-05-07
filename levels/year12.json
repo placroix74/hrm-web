@@ -1,0 +1,14 @@
+{
+	"title": "Year 12: Tetracontiplier",
+	"description": "For each thing in the INBOX, multiply it by 40, and put the result in the OUTBOX.",
+	"challenges": {
+		"size": 14,
+		"speed": 56
+	},
+	"datasets": [
+		{
+			"input": [1, -7, 3, 0],
+			"output": [40, -280, -120, 0]
+		}
+	]
+}

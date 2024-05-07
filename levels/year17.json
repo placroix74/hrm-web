@@ -1,0 +1,18 @@
+{
+	"title": "Year 17: Exclusive Lounge",
+	"description": [
+		"For each TWO things in the INBOX:",
+		"<ul><li>Send a 0 to the OUTBOX if they have the same sign. (Both positive or both negative.)</li><li>Send a 1 to the OUTBOX if their signs are different.</li>",
+		"Repeat until the INBOX is empty."
+	],
+	"challenges": {
+		"size": 12,
+		"speed": 28
+	},
+	"datasets": [
+		{
+			"input": [1, 7, -7, -9, 1, 3, 4, -2],
+			"output": [1, 0, 0, 1]
+		}
+	]
+}

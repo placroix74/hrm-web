@@ -1,0 +1,17 @@
+{
+	"title": "Year 20: Multiplication Workshop",
+	"description": [
+		"For each two things in the INBOX, multiply them, and OUTBOX the result. Don't worry about negative numbers for now.",
+		"You can DEFINE constants to help you remember the purpose of each slot in Memory."
+	],
+	"challenges": {
+		"size": 10,
+		"speed": 72
+	},
+	"datasets": [
+		{
+			"input": [6, 9, 0, 4, -6, 7, 0, 0, 0, 3, -1, 6, 3, -5, 9, 0],
+			"output": [54, 0, -42, 0, 0, -6, -15, 0]
+		}
+	]
+}

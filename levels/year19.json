@@ -1,0 +1,17 @@
+{
+	"title": "Year 19: Countdown",
+	"description": [
+		"For each number in the INBOX, send that number to the OUTBOX, followed by all numbers down to (or up to) zero. It's a countdown!",
+		"The BUMP+ and BUMP- add ONE or subtract ONE from an item in Memory, respectively. The result is put back in Register, and for your convenience, also written back to the floor. BUMP!"
+	],
+	"challenges": {
+		"size": 10,
+		"speed": 82
+	},
+	"datasets": [
+		{
+			"input": [8, -7, 0, -6],
+			"output": [8, 7, 6, 5, 4, 3, 2, 1, 0, -7, -6, -5, -4, -3, -2, -1, 0, 0, -6, -5, -4, -3, -2, -1, 0]
+		}
+	]
+}

@@ -2,7 +2,7 @@
 	"title": "Year 7: Zero Exterminator",
 	"description": [
 		"Send all things that ARE NOT ZERO to the OUTBOX.",
-		"Use the JUMP command! It jumps ONLY if the value in Register is ZERO. Otherwise it continues to the next line."
+		"Use the JUMPIFZERO command! It jumps ONLY if the value in Register is ZERO. Otherwise it continues to the next line."
 	],
 	"challenges": {
 		"size": 4,

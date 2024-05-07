@@ -339,7 +339,7 @@
             });
 
             $("#program").on("keyup", function (e) {
-                if (!$("#program")[0].hasAttribute("readonly")) {
+                if (window.hrmMachine != undefined && !$("#program")[0].hasAttribute("readonly")) {
                     window.hrmMachine.programChanged = true;
                 }
             });
@@ -444,7 +444,7 @@
 
                         $("#run")[0].removeAttribute("hidden");
                         $("#stop")[0].setAttribute("hidden", "");
-$("#step")[0].removeAttribute("disabled");
+                        $("#step")[0].removeAttribute("disabled");
                         $("#reset")[0].removeAttribute("disabled");
                     }
                 }
@@ -460,7 +460,7 @@ $("#step")[0].removeAttribute("disabled");
                 this.hrmMachine.program = [];
                 this.hrmMachine.programLines = [];
                 this.hrmMachine.programLength = 0;
-                this.hrmMachine.programChanged = false;
+                this.hrmMachine.programChanged = true;
                 this.hrmMachine.constants = [];
                 this.hrmMachine.output = null;
                 this.hrmMachine.timeoutID = null;
@@ -838,9 +838,9 @@ $("#step")[0].removeAttribute("disabled");
                         continue;
                     }
 
-                    result = line.matchAll(/^(J(U)?MP)([A-Z_\-]+)$/gi).next();
+                    result = line.matchAll(/^(J(UMP)?)(IF)?(N(EG(ATIVE)?)?|L(ESSTHAN)?Z(ERO)?)([A-Z_\-]+)$/gi).next();
                     if (!result.done) {
-                        this.hrmMachine.program.push(["Jump", result.value[3]]);
+                        this.hrmMachine.program.push(["JumpIfNegative", result.value[9]]);
                         continue;
                     }
 
@@ -850,24 +850,24 @@ $("#step")[0].removeAttribute("disabled");
                         continue;
                     }
 
-                    result = line.matchAll(/^(J(UMP)?)(IF)?(N(EG(ATIVE)?)?|L(ESSTHAN)?Z(ERO)?)([A-Z_\-]+)$/gi).next();
+                    result = line.matchAll(/^(J(U)?MP)([A-Z_\-]+)$/gi).next();
                     if (!result.done) {
-                        this.hrmMachine.program.push(["JumpIfNegative", result.value[9]]);
+                        this.hrmMachine.program.push(["Jump", result.value[3]]);
                         continue;
                     }
 
-                    result = line.matchAll(/^(BUMP\+|INC(REMENT)?)(\[(\d+|[A-Z_\-]+)\]|(\d+|[A-Z_\-]+))$/gi).next();
+                    result = line.matchAll(/^(BUMP(UP|\+)|INC(REMENT)?)(\[(\d+|[A-Z_\-]+)\]|(\d+|[A-Z_\-]+))$/gi).next();
                     if (!result.done) {
-                        this.hrmMachine.program.push((result.value[4] == undefined) ?
-                            ["Increment", result.value[5]] : ["pIncrement", result.value[3]]
+                        this.hrmMachine.program.push((result.value[5] == undefined) ?
+                            ["Increment", result.value[6]] : ["pIncrement", result.value[4]]
                         );
                         continue;
                     }
 
-                    result = line.matchAll(/^(BUMP-|DEC(REMENT)?)(\[(\d+|[A-Z_\-]+)\]|(\d+|[A-Z_\-]+))$/gi).next();
+                    result = line.matchAll(/^(BUMP(D(OW)?N|-)|DEC(REMENT)?)(\[(\d+|[A-Z_\-]+)\]|(\d+|[A-Z_\-]+))$/gi).next();
                     if (!result.done) {
-                        this.hrmMachine.program.push((result.value[4] == undefined) ?
-                            ["Decrement", result.value[5]] : ["pDecrement", result.value[3]]
+                        this.hrmMachine.program.push((result.value[6] == undefined) ?
+                            ["Decrement", result.value[7]] : ["pDecrement", result.value[5]]
                         );
                         continue;
                     }
@@ -1011,8 +1011,11 @@ $("#step")[0].removeAttribute("disabled");
 
                 let nextState = cloneState(state);
                 hrmExec(nextState, instruction);
-                this.hrmMachine.states.push(nextState);
+                if (nextState.error) {
+                    return false;
+                }
 
+                this.hrmMachine.states.push(nextState);
                 if (nextState.halted) {
                     hrmValidateFinalOutput(nextState);
                     return false;
@@ -1026,6 +1029,50 @@ $("#step")[0].removeAttribute("disabled");
                 return JSON.parse(JSON.stringify(state));
             }
 
+            function hrmGetRegister(state) {
+                let value = state.register;
+                if (value == null) {
+                    state.error = `Register is empty`;
+                }
+                return value;
+            }
+
+            function hrmGetMemory(state, slot) {
+                let value = state.memory[slot];
+                if (value == null) {
+                    state.error = `Memory address ${slot} is empty`;
+                }
+                return value;
+            }
+
+            function hrmValidateOperation(operation, operand1, operand2) {
+                switch (operation) {
+                    case "Subtract": {
+                        if (typeof(operand1) != typeof(operand2)) {
+                            state.error = `Cannot perform on: ${operand1}, ${operand2}`;
+                            return false;
+                        }
+                    } break;
+
+                    case "Add": {
+                        if (!Number.isInteger(operand1) || !Number.isInteger(operand2)) {
+                            state.error = `Cannot perform on: ${operand1}, ${operand2}`;
+                            return false;
+                        }
+                    } // fall through
+
+                    case "Increment":
+                    case "Decrement": {
+                        if (!Number.isInteger(operand1)) {
+                            state.error = `Cannot perform on: ${operand1}`;
+                            return false;
+                        }
+                    } break;
+                }
+
+                return true;
+            }
+
             function hrmExec(state, instruction) {
                 // indirect addressing
                 switch (instruction[0]) {
@@ -1035,7 +1082,11 @@ $("#step")[0].removeAttribute("disabled");
                     case "pSubtract":
                     case "pIncrement":
                     case "pDecrement": {
-                        instruction = [instruction[0].slice(1), state.memory[instruction[1]]];
+                        let value = hrmGetMemory(state, instruction[1]);
+                        if (value == null) {
+                            break;
+                        }
+                        instruction = [instruction[0].slice(1), value];
                     }
                 }
 
@@ -1044,67 +1095,12 @@ $("#step")[0].removeAttribute("disabled");
                 state.output_changed = false;
                 state.memory_changed = false;
 
-                let value = undefined;
-                switch (instruction[0]) {
-                    case "CopyFrom":
-                    case "Add":
-                    case "Subtract":
-                    case "Increment":
-                    case "Decrement": {
-                        value = state.memory[instruction[1]];
-                        if (value == null) {
-                            state.error = `No value at address ${instruction[1]}`;
-                            return state;
-                        }
-                    } break;
-                }
-
-                // register usage
-
-                switch (instruction[0]) {
-                    case "CopyTo":
-                    case "Add":
-                    case "Subtract": {
-                        if (state.register == null) {
-                            state.error = "No value in register";
-                            return state;
-                        }
-                    } break;
-                }
-
-                // operand type
-
-                switch (instruction[0]) {
-                    case "Subtract": {
-                        if (typeof(value) != typeof(state.register)) {
-                            state.error = `Cannot perform on: ${state.register}, ${value}`;
-                            return state;
-                        }
-                    } break;
-
-                    case "Add": {
-                        if (!Number.isInteger(state.register)) {
-                            state.error = `Cannot perform on: ${state.register}, ${value}`;
-                            return state;
-                        }
-                    } // fall through
-
-                    case "Increment":
-                    case "Decrement": {
-                        if (!Number.isInteger(value)) {
-                            state.error = `Cannot perform on: ${value}`;
-                            return state;
-                        }
-                    } break;
-                }
-
                 // execute step
 
                 switch (instruction[0]) {
                     case "NoOp": {
-                        ++state.next;
-                        return state;
-                    }
+                        // do nothing
+                    } break;
 
                     case "Inbox": {
                         let input = state.input.pop();
@@ -1120,46 +1116,73 @@ $("#step")[0].removeAttribute("disabled");
                     } break;
 
                     case "Outbox": {
-                        state.output.push(state.register);
-                        state.register_changed = true;
-                        state.output_changed = true;
+                        let value = hrmGetRegister(state);
+                        if (value != null) {
+                            state.output.push(value);
+                            state.register_changed = true;
+                            state.output_changed = true;
+                        }
                     } break;
 
                     case "CopyFrom": {
-                        state.register = value;
-                        state.register_changed = true;
-                        state.memory_changed = instruction[1];
+                        let value = hrmGetMemory(state, instruction[1]);
+                        if (value != null) {
+                            state.register = value;
+                            state.register_changed = true;
+                            state.memory_changed = instruction[1];
+                        }
                     } break;
 
                     case "CopyTo": {
-                        state.memory[instruction[1]] = state.register;
-                        state.register_changed = true;
-                        state.memory_changed = instruction[1];
+                        let value = hrmGetRegister(state);
+                        if (value != null) {
+                            state.memory[instruction[1]] = value;
+                            state.register_changed = true;
+                            state.memory_changed = instruction[1];
+                        }
                     } break;
 
                     case "Add": {
-                        state.register += value;
-                        state.register_changed = true;
-                        state.memory_changed = instruction[1];
+                        let operand1 = hrmGetRegister(state);
+                        if (operand1 != null) {
+                            operand2 = hrmGetMemory(state, instruction[1]);
+                            if (operand1 != null && hrmValidateOperation(instruction[0], operand1, operand2)) {
+                                state.register = operand1 + operand2;
+                                state.register_changed = true;
+                                state.memory_changed = instruction[1];
+                            }
+                        }
                     } break;
 
                     case "Subtract": {
-                        state.register = (Number.isInteger(value)) ?
-                            state.register - value : state.register.charCodeAt(0) - value.charCodeAt(0);
-                        state.register_changed = true;
-                        state.memory_changed = instruction[1];
+                        let operand1 = hrmGetRegister(state);
+                        if (operand1 != null) {
+                            operand2 = hrmGetMemory(state, instruction[1]);
+                            if (operand1 != null && hrmValidateOperation(instruction[0], operand1, operand2)) {
+                                state.register = (Number.isInteger(operand1)) ?
+                                    operand1 - operand2 : operand1.charCodeAt(0) - operand2.charCodeAt(0);
+                                state.register_changed = true;
+                                state.memory_changed = instruction[1];
+                            }
+                        }
                     } break;
 
                     case "Increment": {
-                        state.register = state.memory[instruction[1]] = value + 1;
-                        state.register_changed = true;
-                        state.memory_changed = instruction[1];
+                        value = hrmGetMemory(state, instruction[1]);
+                        if (value != null && hrmValidateOperation(instruction[0], value)) {
+                            state.register = state.memory[instruction[1]] = value + 1;
+                            state.register_changed = true;
+                            state.memory_changed = instruction[1];
+                        }
                     } break;
 
                     case "Decrement": {
-                        state.register = state.memory[instruction[1]] = value - 1;
-                        state.register_changed = true;
-                        state.memory_changed = instruction[1];
+                        value = hrmGetMemory(state, instruction[1]);
+                        if (value != null && hrmValidateOperation(instruction[0], value)) {
+                            state.register = state.memory[instruction[1]] = value - 1;
+                            state.register_changed = true;
+                            state.memory_changed = instruction[1];
+                        }
                     } break;
                 }
 
