@@ -771,7 +771,7 @@
                         .replace(/#.*$/g, '');  // remove comment
 
                     if (line == '') {
-                        this.hrmMachine.program.push(["NoOp"]);
+                        this.hrmMachine.program.push(["NOP"]);
                         continue;
                     }
 
@@ -783,33 +783,33 @@
                         let addr = result.value[3];
                         constants[tag.toUpperCase()] = Number.parseInt(addr);
                         this.hrmMachine.constants[addr] = tag;
-                        this.hrmMachine.program.push(["NoOp"]);
+                        this.hrmMachine.program.push(["NOP"]);
                         continue;
                     }
 
                     result = line.matchAll(/^([A-Z_\-]+):$/gi).next();
                     if (!result.done) {
                         labels[result.value[1].toUpperCase()] = this.hrmMachine.program.length;
-                        this.hrmMachine.program.push(["NoOp"]);
+                        this.hrmMachine.program.push(["NOP"]);
                         continue;
                     }
 
                     result = line.matchAll(/^IN(BOX)?$/gi).next();
                     if (!result.done) {
-                        this.hrmMachine.program.push(["Inbox"]);
+                        this.hrmMachine.program.push(["INBOX"]);
                         continue;
                     }
 
                     result = line.matchAll(/^OUT(BOX)?$/gi).next();
                     if (!result.done) {
-                        this.hrmMachine.program.push(["Outbox"]);
+                        this.hrmMachine.program.push(["OUTBOX"]);
                         continue;
                     }
 
                     result = line.matchAll(/^(COPY)?FROM(\[(\d+|[A-Z_\-]+)\]|(\d+|[A-Z_\-]+))$/gi).next();
                     if (!result.done) {
                         this.hrmMachine.program.push((result.value[3] == undefined) ?
-                            ["CopyFrom", result.value[4]] : ["pCopyFrom", result.value[3]]
+                            ["COPYFROM", result.value[4]] : ["pCOPYFROM", result.value[3]]
                         );
                         continue;
                     }
@@ -817,7 +817,7 @@
                     result = line.matchAll(/^(COPY)?TO(\[(\d+|[A-Z_\-]+)\]|(\d+|[A-Z_\-]+))$/gi).next();
                     if (!result.done) {
                         this.hrmMachine.program.push((result.value[3] == undefined) ?
-                            ["CopyTo", result.value[4]] : ["pCopyTo", result.value[3]]
+                            ["COPYTO", result.value[4]] : ["pCOPYTO", result.value[3]]
                         );
                         continue;
                     }
@@ -825,7 +825,7 @@
                     result = line.matchAll(/^ADD(\[(\d+|[A-Z_\-]+)\]|(\d+|[A-Z_\-]+))$/gi).next();
                     if (!result.done) {
                         this.hrmMachine.program.push((result.value[2] == undefined) ?
-                            ["Add", result.value[3]] : ["pAdd", result.value[2]]
+                            ["ADD", result.value[3]] : ["pADD", result.value[2]]
                         );
                         continue;
                     }
@@ -833,33 +833,33 @@
                     result = line.matchAll(/^SUB(TRACT)?(\[(\d+|[A-Z_\-]+)\]|(\d+|[A-Z_\-]+))$/gi).next();
                     if (!result.done) {
                         this.hrmMachine.program.push((result.value[3] == undefined) ?
-                            ["Subtract", result.value[4]] : ["pSubtract", result.value[3]]
+                            ["SUB", result.value[4]] : ["pSUB", result.value[3]]
                         );
                         continue;
                     }
 
                     result = line.matchAll(/^(J(UMP)?)(IF)?(N(EG(ATIVE)?)?|L(ESSTHAN)?Z(ERO)?)([A-Z_\-]+)$/gi).next();
                     if (!result.done) {
-                        this.hrmMachine.program.push(["JumpIfNegative", result.value[9]]);
+                        this.hrmMachine.program.push(["JUMPIFNEGATIVE", result.value[9]]);
                         continue;
                     }
 
                     result = line.matchAll(/^(J(UMP)?)(IF)?(Z(ERO)?)([A-Z_\-]+)$/gi).next();
                     if (!result.done) {
-                        this.hrmMachine.program.push(["JumpIfZero", result.value[6]]);
+                        this.hrmMachine.program.push(["JUMPIFZERO", result.value[6]]);
                         continue;
                     }
 
                     result = line.matchAll(/^(J(U)?MP)([A-Z_\-]+)$/gi).next();
                     if (!result.done) {
-                        this.hrmMachine.program.push(["Jump", result.value[3]]);
+                        this.hrmMachine.program.push(["JUMP", result.value[3]]);
                         continue;
                     }
 
                     result = line.matchAll(/^(BUMP(UP|\+)|INC(REMENT)?)(\[(\d+|[A-Z_\-]+)\]|(\d+|[A-Z_\-]+))$/gi).next();
                     if (!result.done) {
                         this.hrmMachine.program.push((result.value[5] == undefined) ?
-                            ["Increment", result.value[6]] : ["pIncrement", result.value[4]]
+                            ["BUMP+", result.value[6]] : ["pBUMP+", result.value[4]]
                         );
                         continue;
                     }
@@ -867,7 +867,7 @@
                     result = line.matchAll(/^(BUMP(D(OW)?N|-)|DEC(REMENT)?)(\[(\d+|[A-Z_\-]+)\]|(\d+|[A-Z_\-]+))$/gi).next();
                     if (!result.done) {
                         this.hrmMachine.program.push((result.value[6] == undefined) ?
-                            ["Decrement", result.value[7]] : ["pDecrement", result.value[5]]
+                            ["BUMP-", result.value[7]] : ["pBUMP-", result.value[5]]
                         );
                         continue;
                     }
@@ -877,7 +877,7 @@
                     logMessage("Syntax error", this.hrmMachine.program.length);
                     hasErrors = true;
 
-                    this.hrmMachine.program.push(["NoOp"]);
+                    this.hrmMachine.program.push(["NOP"]);
                 }
 
                 this.hrmMachine.programLines.push(programText.length);
@@ -887,18 +887,18 @@
                 for (entry of this.hrmMachine.program.entries()) {
                     let item = entry[1];
                     switch (item[0]) {
-                        case "CopyFrom":
-                        case "pCopyFrom":
-                        case "CopyTo":
-                        case "pCopyTo":
-                        case "Increment":
-                        case "pIncrement":
-                        case "Decrement":
-                        case "pDecrement":
-                        case "Add":
-                        case "pAdd":
-                        case "Subtract":
-                        case "pSubtract": {
+                        case "COPYFROM":
+                        case "pCOPYFROM":
+                        case "COPYTO":
+                        case "pCOPYTO":
+                        case "BUMP+":
+                        case "pBUMP+":
+                        case "BUMP-":
+                        case "pBUMP-":
+                        case "ADD":
+                        case "pADD":
+                        case "SUB":
+                        case "pSUB": {
                             let location = Number.parseInt(item[1]);
                             if (location.toString() === item[1]) {
                                 item[1] = location;  // address is a number
@@ -913,9 +913,9 @@
                             }
                         } break;
 
-                        case "Jump":
-                        case "JumpIfZero":
-                        case "JumpIfNegative": {
+                        case "JUMP":
+                        case "JUMPIFZERO":
+                        case "JUMPIFNEGATIVE": {
                             let location = labels[item[1].toUpperCase()];
                             if (location == undefined) {
                                 logMessage(`Unrecognized jump location: \"${item[1]}\"`, entry[0]);
@@ -937,7 +937,7 @@
                 // remove trailing NOP's
                 while (this.hrmMachine.program.length > 0) {
                     let lastInstruction = this.hrmMachine.program[this.hrmMachine.program.length - 1];
-                    if (lastInstruction[0] != "NoOp") {
+                    if (lastInstruction[0] != "NOP") {
                         break;
                     }
                     this.hrmMachine.program.pop();
@@ -945,7 +945,7 @@
 
                 // program length
                 for (item of this.hrmMachine.program) {
-                    if (item[0] == "NoOp")
+                    if (item[0] == "NOP")
                         continue;
                     ++this.hrmMachine.programLength;
                 }
@@ -1029,64 +1029,71 @@
                 return JSON.parse(JSON.stringify(state));
             }
 
-            function hrmGetRegister(state) {
+            function hrmGetRegister(state, operation) {
                 let value = state.register;
                 if (value == null) {
-                    state.error = `Register is empty`;
+                    state.error = `Empty value! You can't ${operation} with an empty register!`;
                 }
                 return value;
             }
 
-            function hrmGetMemory(state, slot) {
+            function hrmGetMemory(state, slot, operation) {
+                if (0 > slot || slot >= 25) {
+                    state.error = `Bad tile address! Tile with address ${slot} doesn't even exist! Where do you think you're going?`;
+                    return null;
+                }
+
                 let value = state.memory[slot];
                 if (value == null) {
-                    state.error = `Memory address ${slot} is empty`;
+                    state.error = `Empty value! You can't ${operation} with an empty slot in Memory! Try writing something in that slot first.`;
                 }
                 return value;
             }
 
             function hrmValidateOperation(operation, operand1, operand2) {
                 switch (operation) {
-                    case "Subtract": {
+                    case "SUB": {
                         if (typeof(operand1) != typeof(operand2)) {
-                            state.error = `Cannot perform on: ${operand1}, ${operand2}`;
-                            return false;
+                            state.error = `You can't SUB with mixed operands! SUB'ing between one letter and one number is invalid. Only nice respectable pairs of two letters or two numbers allowed.`;
                         }
                     } break;
 
-                    case "Add": {
+                    case "ADD": {
                         if (!Number.isInteger(operand1) || !Number.isInteger(operand2)) {
-                            state.error = `Cannot perform on: ${operand1}, ${operand2}`;
-                            return false;
+                            state.error = `You can't ADD with a letter! What would that even mean?!`;
                         }
-                    } // fall through
+                    } break;
 
-                    case "Increment":
-                    case "Decrement": {
+                    case "BUMP+":
+                    case "BUMP-": {
                         if (!Number.isInteger(operand1)) {
-                            state.error = `Cannot perform on: ${operand1}`;
-                            return false;
+                            state.error = `You can't ${operation} with a letter! What would that even mean?!`;
                         }
                     } break;
                 }
 
-                return true;
+                return (state.error == null);
             }
 
             function hrmExec(state, instruction) {
                 // indirect addressing
-                switch (instruction[0]) {
-                    case "pCopyFrom":
-                    case "pCopyTo":
-                    case "pAdd":
-                    case "pSubtract":
-                    case "pIncrement":
-                    case "pDecrement": {
-                        let value = hrmGetMemory(state, instruction[1]);
-                        if (value == null) {
+                let operation = instruction[0];
+                switch (operation) {
+                    case "pCOPYFROM":
+                    case "pCOPYTO":
+                    case "pADD":
+                    case "pSUB":
+                    case "pBUMP+":
+                    case "pBUMP-": {
+                        let value = hrmGetMemory(state, instruction[1], operation);
+                        if (value != null && !Number.isInteger(value)) {
+                            state.error = `Bad tile address! You can't indirect to a tile with a letter like "${value}". Only numbers allowed! Where do you think you're going?`;
+                        }
+
+                        if (state.error != null) {
                             break;
                         }
-                        instruction = [instruction[0].slice(1), value];
+                        instruction = [operation.slice(1), value];
                     }
                 }
 
@@ -1097,12 +1104,13 @@
 
                 // execute step
 
-                switch (instruction[0]) {
-                    case "NoOp": {
+                operation = instruction[0];
+                switch (operation) {
+                    case "NOP": {
                         // do nothing
                     } break;
 
-                    case "Inbox": {
+                    case "INBOX": {
                         let input = state.input.pop();
                         if (input == undefined) {
                             logMessage(state.error ?? "End of input reached");
@@ -1115,8 +1123,8 @@
                         state.input_changed = true;
                     } break;
 
-                    case "Outbox": {
-                        let value = hrmGetRegister(state);
+                    case "OUTBOX": {
+                        let value = hrmGetRegister(state, operation);
                         if (value != null) {
                             state.output.push(value);
                             state.register_changed = true;
@@ -1124,8 +1132,8 @@
                         }
                     } break;
 
-                    case "CopyFrom": {
-                        let value = hrmGetMemory(state, instruction[1]);
+                    case "COPYFROM": {
+                        let value = hrmGetMemory(state, instruction[1], operation);
                         if (value != null) {
                             state.register = value;
                             state.register_changed = true;
@@ -1133,8 +1141,8 @@
                         }
                     } break;
 
-                    case "CopyTo": {
-                        let value = hrmGetRegister(state);
+                    case "COPYTO": {
+                        let value = hrmGetRegister(state, operation);
                         if (value != null) {
                             state.memory[instruction[1]] = value;
                             state.register_changed = true;
@@ -1142,11 +1150,11 @@
                         }
                     } break;
 
-                    case "Add": {
-                        let operand1 = hrmGetRegister(state);
+                    case "ADD": {
+                        let operand1 = hrmGetRegister(state, operation);
                         if (operand1 != null) {
-                            operand2 = hrmGetMemory(state, instruction[1]);
-                            if (operand1 != null && hrmValidateOperation(instruction[0], operand1, operand2)) {
+                            operand2 = hrmGetMemory(state, instruction[1], operation);
+                            if (operand1 != null && hrmValidateOperation(operation, operand1, operand2)) {
                                 state.register = operand1 + operand2;
                                 state.register_changed = true;
                                 state.memory_changed = instruction[1];
@@ -1154,11 +1162,11 @@
                         }
                     } break;
 
-                    case "Subtract": {
-                        let operand1 = hrmGetRegister(state);
+                    case "SUB": {
+                        let operand1 = hrmGetRegister(state, operation);
                         if (operand1 != null) {
                             operand2 = hrmGetMemory(state, instruction[1]);
-                            if (operand1 != null && hrmValidateOperation(instruction[0], operand1, operand2)) {
+                            if (operand1 != null && hrmValidateOperation(operation, operand1, operand2)) {
                                 state.register = (Number.isInteger(operand1)) ?
                                     operand1 - operand2 : operand1.charCodeAt(0) - operand2.charCodeAt(0);
                                 state.register_changed = true;
@@ -1167,18 +1175,18 @@
                         }
                     } break;
 
-                    case "Increment": {
-                        value = hrmGetMemory(state, instruction[1]);
-                        if (value != null && hrmValidateOperation(instruction[0], value)) {
+                    case "BUMP+": {
+                        value = hrmGetMemory(state, instruction[1], operation);
+                        if (value != null && hrmValidateOperation(operation, value)) {
                             state.register = state.memory[instruction[1]] = value + 1;
                             state.register_changed = true;
                             state.memory_changed = instruction[1];
                         }
                     } break;
 
-                    case "Decrement": {
-                        value = hrmGetMemory(state, instruction[1]);
-                        if (value != null && hrmValidateOperation(instruction[0], value)) {
+                    case "BUMP-": {
+                        value = hrmGetMemory(state, instruction[1], operation);
+                        if (value != null && hrmValidateOperation(operation, value)) {
                             state.register = state.memory[instruction[1]] = value - 1;
                             state.register_changed = true;
                             state.memory_changed = instruction[1];
@@ -1188,19 +1196,23 @@
 
                 // set next instruction pointer
 
-                switch (instruction[0]) {
-                    case "Jump": {
+                switch (operation) {
+                    case "JUMP": {
                         state.next = instruction[1];
                     } break;
 
-                    case "JumpIfZero": {
+                    case "JUMPIFZERO": {
                         let value = hrmGetRegister(state);
-                        state.next = (Number.isInteger(value) && value == 0) ? instruction[1] : state.next + 1;
+                        if (value != null) {
+                            state.next = (Number.isInteger(value) && value == 0) ? instruction[1] : state.next + 1;
+                        }
                     } break;
 
-                    case "JumpIfNegative": {
+                    case "JUMPIFNEGATIVE": {
                         let value = hrmGetRegister(state);
-                        state.next = (Number.isInteger(value) && value < 0) ? instruction[1] : state.next + 1;
+                        if (value != null) {
+                            state.next = (Number.isInteger(value) && value < 0) ? instruction[1] : state.next + 1;
+                        }
                     } break;
 
                     default: {
