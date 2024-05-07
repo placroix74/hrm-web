@@ -1,7 +1,9 @@
 {
 	"title": "Year 41: Sorting Floor",
 	"description": "For each zero-terminated string in the INBOX, SORT the contents of the string, smallest first, biggest last, and put the results in the OUBOX. Repeat for each string.",
-	"memory": {"24": 0},
+	"memory": {
+		"contents": {"24": 0}
+	},
 	"challenges": {
 		"size": 34,
 		"speed": 714

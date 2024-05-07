@@ -1,8 +1,8 @@
-def cnt 20
-def cmp 21
-def swap 22
-def input 23
-def zero 24
+tile 20 cnt
+tile 21 cmp
+tile 22 swap
+tile 23 input
+tile 24 zero
 in:
 from zero
 to cnt

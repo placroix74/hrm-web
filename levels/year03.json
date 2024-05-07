@@ -9,7 +9,10 @@
 		"size": 6,
 		"speed": 6
 	},
-	"memory": ["U", "J", "X", "G", "B", "E"],
+	"memory": {
+		"size": 6,
+		"contents": ["U", "J", "X", "G", "B", "E"]
+	},
 	"datasets": [
 		{
 			"output": ["B","U","G"]

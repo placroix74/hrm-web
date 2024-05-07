@@ -59,20 +59,20 @@
             <table style="width: 100%;">
                 <tr>
                     <th>
-                        <label for="register">Register: </label><input name="register" id="register" readonly></input>
+                        <label for="register">In hand: </label><input name="register" id="register" readonly></input>
                     </td>
                     <th>
-                        <label for="count">Instruction Count: </label><input name="count" id="count" readonly></input>
+                        <label for="count">Execution Steps: </label><input name="count" id="count" readonly></input>
                     </td>
                     <th>
-                        <label for="length">Program Length: </label><input name="length" id="length" readonly></input>
+                        <label for="length">Program Size: </label><input name="length" id="length" readonly></input>
                     </td>
                 </tr>
             </table>
             <table style="width: 100%;">
                 <tr>
                     <th id="input-header">Inbox</th>
-                    <th>Memory</th>
+                    <th>Carpet Tiles</th>
                     <th id="output-header">Outbox</th>
                     <th>Program</th>
                 </tr>
@@ -134,84 +134,84 @@
                 </tr>
                 <tr>
                     <td># <i>comment</i></td>
-                    <td>Anything following "#" is not considered code</td>
+                    <td>Anything following "#" is not considered code, anywhere on a line</td>
                 </tr>
                 <tr>
                     <td>
                         inbox<br />
                         in
                     </td>
-                    <td>Read value from Inbox into Register</td>
+                    <td>Pick up next value from the Inbox</td>
                 </tr>
                 <tr>
                     <td>
                         outbox<br />
                         out
                     </td>
-                    <td>Write value from Register into Outbox</td>
+                    <td>Put currently held value in the Outbox</td>
                 </tr>
                 <tr>
                     <td>
-                        copy from <i>addr</i><br />
-                        from <i>addr</i>
+                        copy from <i>address</i><br />
+                        from <i>address</i>
                     </td>
-                    <td>Read value from Memory slot <i>addr</i> into Register</td>
+                    <td>Pick up contents of tile at <i>address</i></td>
                 </tr>
                 <tr>
                     <td>
-                        copy to <i>addr</i><br />
-                        to <i>addr</i>
+                        copy to <i>address</i><br />
+                        to <i>address</i>
                     </td>
-                    <td>Write value from Register into Memory slot <i>addr</i></td>
+                    <td>Write currently held value on tile at <i>address</i></td>
                 </tr>
                 <tr>
                     <th colspan="2"><br />Arithmetic</th>
                 </tr>
                 <tr>
-                    <td>add <i>addr</i></td>
+                    <td>add <i>address</i></td>
                     <td>
-                        Read value from Memory slot <i>addr</i> and add it to Register<br />
-                        <b>NOTE:</b> Applicable to values of the same type only
+                        Add contents of tile at <i>address</i> to currently held value<br />
+                        <b>NOTE:</b> Only numbers can be added
                     </td>
                 </tr>
                 <tr>
                     <td>
-                        subtract <i>addr</i><br />
-                        sub <i>addr</i>
+                        subtract <i>address</i><br />
+                        sub <i>address</i>
                     </td>
                     <td>
-                        Read value from Memory slot <i>addr</i> and subtract it from Register<br />
-                        <b>NOTE:</b> Applicable to values of the same type only
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        bump+ <i>addr</i><br />
-                        increment <i>addr</i><br />
-                        inc <i>addr</i>
-                    </td>
-                    <td>
-                        Read value from Memory slot <i>addr</i> into Register, add 1 and write back to memory<br />
-                        <b>NOTE:</b> Applicable to integer values only
+                        Subtract contents of tile at <i>address</i> from currently held value<br />
+                        <b>NOTE:</b> Only numbers can be subtracted from numbers, or letters from letters
                     </td>
                 </tr>
                 <tr>
                     <td>
-                        bump- <i>addr</i><br />
-                        decrement <i>addr</i><br />
-                        dec <i>addr</i>
+                        bump+ <i>address</i><br />
+                        increment <i>address</i><br />
+                        inc <i>address</i>
                     </td>
                     <td>
-                        Read value from Memory slot <i>addr</i> into Register, subtract 1 and write back to memory<br />
-                        <b>NOTE:</b> Applicable to integer values only
+                        Subtract one to the tile at <i>address</i> and pick up the result<br />
+                        <b>NOTE:</b> Only numbers can be bumped
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        bump- <i>address</i><br />
+                        decrement <i>address</i><br />
+                        dec <i>address</i>
+                    </td>
+                    <td>
+                        Subtract one from the tile at <i>address</i> and pick up the result<br />
+                        <b>NOTE:</b> Only numbers can be bumped
                     </td>
                 </tr>
                 <tr>
                     <th colspan="2"><br />Indirect Addressing</th>
                 </tr>
                 <tr>
-                    <td><i>command</i> [<i>addr</i>]</td>
-                    <td>Perform operation on Memory slot whose actual address is stored at <i>addr</i></td>
+                    <td><i>command</i> [<i>address</i>]</td>
+                    <td>Access contents of a tile whose address is written on tile at <i>address</i></td>
                 </tr>
                 <tr>
                     <th colspan="2"><br />Branching</th>
@@ -225,7 +225,7 @@
                         jump <i>label</i><br />
                         jmp <i>label</i>
                     </td>
-                    <td>Move program execution at <i>label</i></td>
+                    <td>Continue program execution from <i>label</i></td>
                 </tr>
                 <tr>
                     <td>
@@ -235,7 +235,10 @@
                         jzero <i>label</i><br />
                         jz <i>label</i>
                     </td>
-                    <td>Move program execution at <i>label</i> if value in Register is zero</td>
+                    <td>
+                        Jump to <i>label</i> if currently held value is zero<br />
+                        <b>NOTE:</b> Does nothing unless the value in hand is a number
+                    </td>
                 </tr>
                 <tr>
                     <td>
@@ -245,17 +248,20 @@
                         jn <i>label</i><br />
                         jlz <i>label</i>
                     </td>
-                    <td>Move program execution at <i>label</i> if value in Register is negative</td>
+                    <td>
+                        Jump to <i>label</i> if currently held value is negative<br />
+                        <b>NOTE:</b> Does nothing unless the value in hand is a number
+                    </td>
                 </tr>
                 <tr>
-                    <th colspan="2"><br />Constants</th>
+                    <th colspan="2"><br />Tile naming</th>
                 </tr>
                 <tr>
                     <td>
-                        define <i>label</i> <i>addr</i><br />
-                        def <i>label</i> <i>addr</i>
+                        name tile <i>address</i> <i>name</i><br />
+                        tile <i>address</i> <i>name</i><br />
                     </td>
-                    <td>Define literal constant to use as Memory slot address</td>
+                    <td>Name the tile at <i>address</i></td>
                 </tr>
             </table>
         </div>
@@ -265,10 +271,11 @@
             <ul>
                 <li>The problem title; if missing, the filename will be used</li>
                 <li>The description of the task the program should perform, either as a string or an array of strings</li>
-                <li>If applicable, a Memory initialization vector, either as:
+                <li>The carpet size; if omitted, the default of 25</li>
+                <li>The carpet contents, either as:
                     <ul>
-                        <li>An array up to 25 in length; if longer, extra values will be ignored</li>
-                        <li>An object with memory slot addresses as keys, e.g.: <pre>{ "24": 1, ... }</pre></li>
+                        <li>An array; values beyond the specified size will be ignored</li>
+                        <li>An object with tile addresses as keys, e.g.: <pre>{ "24": 1, ... }</pre></li>
                     </ul>
                     Missing values will be left empty
                 </li>
@@ -278,7 +285,7 @@
                     <li>The <i>expected</i> contents of the Outbox, once the program has completed</li>
                 </ul>
             </ul>
-            The Memory initialization vector, Inbox and Outbox may only contain the following:<br/>
+            The carpet initialization vector, Inbox and Outbox may only contain the following:<br/>
             <ul>
                 <li>
                     Empty values, e.g.: null, ""
@@ -295,7 +302,9 @@
                 <textarea readonly rows="11" class="example">{
     "title": "Year 40: Sorting Floor",
     "description": "Sort the input",
-    "memory": ["","","","","","","","","","","","","","","","","","","","","","","","",0],
+    "memory": {
+        "contents": {"24": 0}
+    },
     "datasets": [
         {
             "input": [97,35,62,0,"A","W","A","K","E",0,44,16,16,23,33,40,37,39,17,22,0,15,0],
@@ -486,14 +495,15 @@
                     }
                 }
 
-                if (setup.memory == undefined) {
-                    for (i = 0; i < 25; ++i) {
+                this.hrmMachine.memorySize = setup.memory?.size ?? 25;
+                if (setup.memory?.contents == undefined) {
+                    for (i = 0; i < this.hrmMachine.memorySize; ++i) {
                         state.memory.push(null);
                     }
                 } else {
-                    for (i = 0; i < 25; ++i) {
+                    for (i = 0; i < this.hrmMachine.memorySize; ++i) {
                         try {
-                            state.memory.push(parseItem(setup.memory[i]));
+                            state.memory.push(parseItem(setup.memory.contents[i]));
                         } catch (e) {
                             logMessage(`Invalid memory value #${entry[0]} : ${entry[1]}`);
                             hasErrors = true;
@@ -777,12 +787,12 @@
 
                     let result = null;
 
-                    result = line.matchAll(/^DEF(INE)?([A-Z_\-]+)(\d+)$/gi).next();
+                    result = line.matchAll(/^(NAME)?TILE(\d+)([A-Z_\-]+)$/gi).next();
                     if (!result.done) {
-                        let tag = result.value[2];
-                        let addr = result.value[3];
-                        constants[tag.toUpperCase()] = Number.parseInt(addr);
-                        this.hrmMachine.constants[addr] = tag;
+                        let address = result.value[2];
+                        let name = result.value[3];
+                        constants[name.toUpperCase()] = Number.parseInt(address);
+                        this.hrmMachine.constants[address] = name;
                         this.hrmMachine.program.push(["NOP"]);
                         continue;
                     }
@@ -1032,25 +1042,25 @@
             function hrmGetRegister(state, operation) {
                 let value = state.register;
                 if (value == null) {
-                    state.error = `Empty value! You can't ${operation} with an empty register!`;
+                    state.error = `Empty value! You can't ${operation} with empty hands!`;
                 }
                 return value;
             }
 
             function hrmGetMemory(state, slot, operation) {
-                if (0 > slot || slot >= 25) {
+                if (0 > slot || slot >= this.hrmMachine.memorySize) {
                     state.error = `Bad tile address! Tile with address ${slot} doesn't even exist! Where do you think you're going?`;
                     return null;
                 }
 
                 let value = state.memory[slot];
                 if (value == null) {
-                    state.error = `Empty value! You can't ${operation} with an empty slot in Memory! Try writing something in that slot first.`;
+                    state.error = `Empty value! You can't ${operation} with an empty tile! Try writing something to that tile first.`;
                 }
                 return value;
             }
 
-            function hrmValidateOperation(operation, operand1, operand2) {
+            function hrmValidateOperation(state, operation, operand1, operand2) {
                 switch (operation) {
                     case "SUB": {
                         if (typeof(operand1) != typeof(operand2)) {
@@ -1154,7 +1164,7 @@
                         let operand1 = hrmGetRegister(state, operation);
                         if (operand1 != null) {
                             operand2 = hrmGetMemory(state, instruction[1], operation);
-                            if (operand1 != null && hrmValidateOperation(operation, operand1, operand2)) {
+                            if (operand1 != null && hrmValidateOperation(state, operation, operand1, operand2)) {
                                 state.register = operand1 + operand2;
                                 state.register_changed = true;
                                 state.memory_changed = instruction[1];
@@ -1166,7 +1176,7 @@
                         let operand1 = hrmGetRegister(state, operation);
                         if (operand1 != null) {
                             operand2 = hrmGetMemory(state, instruction[1]);
-                            if (operand1 != null && hrmValidateOperation(operation, operand1, operand2)) {
+                            if (operand1 != null && hrmValidateOperation(state, operation, operand1, operand2)) {
                                 state.register = (Number.isInteger(operand1)) ?
                                     operand1 - operand2 : operand1.charCodeAt(0) - operand2.charCodeAt(0);
                                 state.register_changed = true;
@@ -1177,7 +1187,7 @@
 
                     case "BUMP+": {
                         value = hrmGetMemory(state, instruction[1], operation);
-                        if (value != null && hrmValidateOperation(operation, value)) {
+                        if (value != null && hrmValidateOperation(state, operation, value)) {
                             state.register = state.memory[instruction[1]] = value + 1;
                             state.register_changed = true;
                             state.memory_changed = instruction[1];
@@ -1186,7 +1196,7 @@
 
                     case "BUMP-": {
                         value = hrmGetMemory(state, instruction[1], operation);
-                        if (value != null && hrmValidateOperation(operation, value)) {
+                        if (value != null && hrmValidateOperation(state, operation, value)) {
                             state.register = state.memory[instruction[1]] = value - 1;
                             state.register_changed = true;
                             state.memory_changed = instruction[1];
@@ -1222,7 +1232,7 @@
 
                 if (state.error != null) {
                     logMessage(state.error, state.next);
-                } else {
+                } else if (operation != "NOP") {
                     ++state.count;
                 }
 
