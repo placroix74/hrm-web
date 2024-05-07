@@ -4,7 +4,7 @@
 		"Type commands into the Program area.",
 		"Your program should tell your worker to grab each thing from the INBOX, and drop it into the OUTBOX."
 	],
-	"goals": {
+	"challenges": {
 		"size": 6,
 		"speed": 6
 	},

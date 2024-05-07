@@ -444,11 +444,11 @@
                             $("#step-back")[0].removeAttribute("disabled");
                         } else {
                             $("#step-back")[0].setAttribute("disabled", "");
-                        }
+                                                    }
 
                         $("#run")[0].removeAttribute("hidden");
                         $("#stop")[0].setAttribute("hidden", "");
-                        $("#step")[0].removeAttribute("disabled");
+$("#step")[0].removeAttribute("disabled");
                         $("#reset")[0].removeAttribute("disabled");
                     }
                 }
@@ -463,12 +463,11 @@
                 this.hrmMachine.states = [];
                 this.hrmMachine.program = [];
                 this.hrmMachine.programLines = [];
+                this.hrmMachine.programLength = 0;
                 this.hrmMachine.programChanged = false;
                 this.hrmMachine.constants = [];
                 this.hrmMachine.output = null;
                 this.hrmMachine.timeoutID = null;
-                this.hrmMachine.sizeGoal = null;
-                this.hrmMachine.speedGoal = null;
 
                 // initial state
 
@@ -552,10 +551,7 @@
                 }
 
                 // Goals
-                if (setup.goals != undefined) {
-                    this.hrmMachine.sizeGoal = setup.goals.size ?? null;
-                    this.hrmMachine.speedGoal = setup.goals.speed ?? null;
-                }
+                this.hrmMachine.challenges = setup.challenges ?? new Object();
 
                 return true;
             }
@@ -588,7 +584,7 @@
                     return;
                 }
                 if (state == undefined) {
-                    state = this.hrmMachine.states[this.hrmMachine.states.length - 1];
+                    state = hrmGetLastState();
                 }
 
                 // register
@@ -660,6 +656,32 @@
 
                 // next instruction
                 selectProgramLine(state.next);
+
+                // speed goal
+
+                let uiCount = $("#count")[0];
+                if (state.halted && this.hrmMachine.challenges.speed != undefined) {
+                    uiCount.value = `${state.count} / ${this.hrmMachine.challenges.speed}`;
+                    if (state.count <= this.hrmMachine.challenges.speed) {
+                        uiCount.setAttribute("success", "");
+                    }
+                } else {
+                    uiCount.value = `${state.count}`;
+                    uiCount.removeAttribute("success");
+                }
+
+                // size goal
+
+                let uiLength = $("#length")[0];
+                if (state.halted && this.hrmMachine.challenges.size != undefined) {
+                    uiLength.value = `${this.hrmMachine.programLength} / ${this.hrmMachine.challenges.size}`;
+                    if (this.hrmMachine.programLength <= this.hrmMachine.challenges.size) {
+                        uiLength.setAttribute("success", "");
+                    }
+                } else {
+                    uiLength.value = `${this.hrmMachine.programLength}`;
+                    uiLength.removeAttribute("success");
+                }
             }
 
             function selectProgramLine(line) {
@@ -682,52 +704,46 @@
 
             function hrmValidateOutput(state) {
                 if (this.hrmMachine.output == null) {
-                    return;
+                    return true;
                 }
+
                 for (entry of state.output.entries()) {
                     let expected = this.hrmMachine.output[entry[0]];
                     let actual = entry[1];
                     if (actual != expected) {
-                        state.error = `Bad outbox! Management expected ${expected}, but you outboxed ${actual}.`;
+                        logMessage(`Bad outbox! Management expected ${expected}, but you outboxed ${actual}.`);
+                        return false;
                     }
                 }
+
+                return true;
             }
 
             function hrmValidateFinalOutput(state) {
                 if (this.hrmMachine.output == null) {
-                    return;
+                    return true;
                 }
 
-                hrmValidateOutput(state);
-                if (state.error != null) {
-                    return;
+                if (!hrmValidateOutput(state)) {
+                    return false;
                 }
 
                 let expected = this.hrmMachine.output.length;
                 let actual = state.output.length;
                 if (actual != expected) {
-                    state.error = `Not enough stuff in the OUTBOX! Management expected a total of ${expected} items, not ${actual}!`;
+                    logMessage(`Not enough stuff in the OUTBOX! Management expected a total of ${expected} items, not ${actual}!`);
+                    return false;
                 }
 
-                // speed goal
-
-                if (this.hrmMachine.speedGoal != null) {
-                    let uiCount = $("#count")[0];
-                    uiCount.value = `${state.count} / ${this.hrmMachine.speedGoal}`;
-                    if (state.count <= this.hrmMachine.speedGoal) {
-                        uiCount.setAttribute("success", "");
-                    }
+                logMessage(`Congratulations!`);
+                if (this.hrmMachine.challenges.size != undefined) {
+                    logMessage(`Size Challenge: use ${this.hrmMachine.challenges.size} or fewer commands. Your current solution uses ${this.hrmMachine.programLength} commands`);
+                }
+                if (this.hrmMachine.challenges.speed != undefined) {
+                    logMessage(`Speed Challenge: complete in ${this.hrmMachine.challenges.speed} or fewer steps. Your current solution completes in ${state.count} steps`);
                 }
 
-                // size goal
-
-                if (this.hrmMachine.sizeGoal != null) {
-                    let uiLength = $("#length")[0];
-                    uiLength.value = `${length} / ${this.hrmMachine.sizeGoal}`;
-                    if (length <= this.hrmMachine.sizeGoal) {
-                        uiLength.setAttribute("success", "");
-                    }
-                }
+                return true;
             }
 
             function hrmCompile() {
@@ -910,28 +926,37 @@
                     }
                 }
 
-                let uiLength = $("#length")[0];
+                this.hrmMachine.programLength = 0;
 
                 if (hasErrors) {
                     this.hrmMachine.program = [];
-                    uiLength.value = null;
                     return false;
                 }
 
                 // remove trailing NOP's
-                while (this.hrmMachine.program[this.hrmMachine.program.length - 1][0] == "NoOp")
+                while (this.hrmMachine.program.length > 0) {
+                    let lastInstruction = this.hrmMachine.program[this.hrmMachine.program.length - 1];
+                    if (lastInstruction[0] != "NoOp") {
+                        break;
+                    }
                     this.hrmMachine.program.pop();
+                }
 
                 // program length
-                let length = 0;
                 for (item of this.hrmMachine.program) {
                     if (item[0] == "NoOp")
                         continue;
-                    ++length;
+                    ++this.hrmMachine.programLength;
                 }
-                uiLength.value = `${length}`;
 
                 return true;
+            }
+
+            function hrmGetLastState() {
+                if (this.hrmMachine == undefined || this.hrmMachine.states.length == 0) {
+                    return null;
+                }
+                return this.hrmMachine.states[this.hrmMachine.states.length - 1];
             }
 
             function hrmResetState() {
@@ -971,15 +996,21 @@
             function hrmStep() {
                 clearMessages();
 
-                let state = this.hrmMachine.states[this.hrmMachine.states.length - 1];
+                let state = hrmGetLastState();
+                if (state.halted) {
+                    return false;
+                }
 
                 let instruction = this.hrmMachine.program[state.next];
                 if (instruction == undefined) {
                     logMessage("End of program reached");
+                    hrmValidateFinalOutput(state);
                     return false;
                 }
 
-                let nextState = hrmExec(state, instruction);
+                let nextState = cloneState(state);
+                hrmExec(nextState, instruction);
+                this.hrmMachine.states.push(nextState);
 
                 if (nextState.halted) {
                     hrmValidateFinalOutput(nextState);
@@ -987,14 +1018,15 @@
                 }
 
                 hrmValidateOutput(nextState);
-
-                this.hrmMachine.states.push(nextState);
                 return true;
+            }
+
+            function cloneState(state) {
+                return JSON.parse(JSON.stringify(state));
             }
 
             function hrmExec(state, instruction) {
                 // indirect addressing
-
                 switch (instruction[0]) {
                     case "pCopyFrom":
                     case "pCopyTo":
@@ -1002,23 +1034,16 @@
                     case "pSubtract":
                     case "pIncrement":
                     case "pDecrement": {
-                        return hrmExec(state,
-                            [instruction[0].slice(1), state.memory[instruction[1]]
-                        ])
+                        instruction = [instruction[0].slice(1), state.memory[instruction[1]]];
                     }
                 }
-
-                state = JSON.parse(JSON.stringify(state));
 
                 state.register_changed = false;
                 state.input_changed = false;
                 state.output_changed = false;
                 state.memory_changed = false;
 
-                // direct addressing
-
                 let value = undefined;
-
                 switch (instruction[0]) {
                     case "CopyFrom":
                     case "Add":

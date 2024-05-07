@@ -3,7 +3,7 @@
 	"description": [
 		"Send only the ZEROs to the OUTBOX."
 	],
-	"goals": {
+	"challenges": {
 		"size": 5,
 		"speed": 25
 	},

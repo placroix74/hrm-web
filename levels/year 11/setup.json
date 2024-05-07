@@ -4,7 +4,7 @@
 		"For each two things in the INBOX, first subtract the 1st from the 2nd and put the result in the OUTBOX. AND THEN, subtract the 2nd from the 1st and put the result in the OUTBOX. Repeat.",
 		"Use the SUB command! It SUBtracts the contents of a slot in Memory FROM whatever value is currently in Register."
 	],
-	"goals": {
+	"challenges": {
 		"size": 5,
 		"speed": 25
 	},

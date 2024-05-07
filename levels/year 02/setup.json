@@ -5,7 +5,7 @@
 		"Use the JUMP command! Place a LABEL within your program and use the JUMP command to make execution continue from there.",
 		"With this new ability you can complete this assignment using only 3 total commands."
 	],
-	"goals": {
+	"challenges": {
 		"size": 3,
 		"speed": 25
 	},

@@ -4,7 +4,7 @@
 		"For each two things in the INBOX, add them together, and put the result in the OUTBOX.",
 		"Use a the ADD command! It ADDs the contents of a slot in Memory to whatever value is currently in Register."
 	],
-	"goals": {
+	"challenges": {
 		"size": 6,
 		"speed": 24
 	},
