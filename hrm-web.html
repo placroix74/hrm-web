@@ -1194,11 +1194,13 @@
                     } break;
 
                     case "JumpIfZero": {
-                        state.next = (state.register == 0) ? instruction[1] : state.next + 1;
+                        let value = hrmGetRegister(state);
+                        state.next = (Number.isInteger(value) && value == 0) ? instruction[1] : state.next + 1;
                     } break;
 
                     case "JumpIfNegative": {
-                        state.next = (state.register < 0) ? instruction[1] : state.next + 1;
+                        let value = hrmGetRegister(state);
+                        state.next = (Number.isInteger(value) && value < 0) ? instruction[1] : state.next + 1;
                     } break;
 
                     default: {
