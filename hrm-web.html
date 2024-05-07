@@ -241,8 +241,8 @@
                     <td>
                         jump if negative <i>label</i><br />
                         jump negative <i>label</i><br />
-                        jump neg <i>label</i><br />
-                        jneg <i>label</i><br />
+                        jumpn <i>label</i><br />
+                        jn <i>label</i><br />
                         jlz <i>label</i>
                     </td>
                     <td>Move program execution at <i>label</i> if value in Register is negative</td>
@@ -263,36 +263,32 @@
             <h2>Setup File Structure</h2>
             A setup file is a JSON file, which defines:<br/>
             <ul>
-                <li>The problem title</li>
-                <li>The description of the task the program should perform</li>
-                <li>A Memory initialization vector, if applicable
+                <li>The problem title; if missing, the filename will be used</li>
+                <li>The description of the task the program should perform, either as a string or an array of strings</li>
+                <li>If applicable, a Memory initialization vector, either as:
+                    <ul>
+                        <li>An array up to 25 in length; if longer, extra values will be ignored</li>
+                        <li>An object with memory slot addresses as keys, e.g.: <pre>{ "24": 1, ... }</pre></li>
+                    </ul>
+                    Missing values will be left empty
+                </li>
                 <li>A list of input/output datasets:</li>
                 <ul>
                     <li>The initial contents of the Inbox</li>
-                    <li>The <i>expected</i> contents of the Outbox, once the program is done</li>
+                    <li>The <i>expected</i> contents of the Outbox, once the program has completed</li>
                 </ul>
             </ul>
-            The Memory initialization vector, Inbox and Outbox may only contain the following values:<br/>
+            The Memory initialization vector, Inbox and Outbox may only contain the following:<br/>
             <ul>
                 <li>
-                    An empty value, e.g.: null, ""
+                    Empty values, e.g.: null, ""
                 </li>
                 <li>
-                    An integer number, e.g.: 10, "10"
+                    Integer numbers, e.g.: 10, "10"
                 </li>
                 <li>
-                    A character (A to Z), e.g.: "A", "B", etc.
+                    Characters (A to Z), e.g.: "A", "B", etc.
                 </li>
-            </ul>
-            <b>NOTES ON MEMORY</b><br/>
-            <ul>
-                <li>There are exactly 25 slots of Memory</li>
-                <li>The initialization vector can either be defined as:
-                <ul>
-                    <li>An array up to 25 in length; if longer, extra values will be ignored</li>
-                    <li>An object with memory slot addresses as keys, e.g.: <pre>{ "24": 1, ... }</pre></li>
-                </ul>
-                <li>Unspecified/missing values will be assumed to be null</li>
             </ul>
             <div>
                 Example:<br />
