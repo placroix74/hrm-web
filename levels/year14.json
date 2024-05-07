@@ -8,6 +8,9 @@
 		"size": 10,
 		"speed": 34
 	},
+	"memory" : {
+		"size": 3
+	},
 	"datasets": [
 		{
 			"input": [1, 9, -6, -1, 9, 9, 5, -1],

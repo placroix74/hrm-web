@@ -1,5 +1,5 @@
 {
-	"title": "Year 21: Multiplication Workshop",
+	"title": "Year 21: Zero Terminated",
 	"description": [
 		"For each two things in the INBOX, multiply them, and OUTBOX the result. Don't worry about negative numbers for now.",
 		"You can DEFINE constants to help you remember the purpose of each slot in Memory."
@@ -7,6 +7,10 @@
 	"challenges": {
 		"size": 10,
 		"speed": 72
+	},
+	"memory" : {
+		"size": 6,
+		"contents": {"5": 0}
 	},
 	"datasets": [
 		{
