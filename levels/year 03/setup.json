@@ -1,7 +1,8 @@
 {
 	"title": "Year 3: Copy Floor",
 	"description": [
-		"Ignore the INBOX for now, and just send the following 3 letters to the OUTBOX: B, U, G",
+		"Ignore the INBOX for now, and just send the following 3 letters to the OUTBOX:",
+		"B U G",
 		"The Facilities Management staff has placed some values over there in Memory for you. If only there were a way to COPYFROM there…"
 	],
 	"challenges": {

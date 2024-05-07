@@ -54,8 +54,6 @@
             <input type="file" id="setup-file" name="setup-file" />
         </div>
         <div id="setup-text-block" hidden>
-            <div id="setup-title"></div>
-            <div id="setup-descr"></div>
         </div>
         <div id="machine">
             <table style="width: 100%;">
@@ -318,6 +316,8 @@
                     return;
                 }
 
+                window.hrmSetupFilename = this.files[0].name;
+
                 const reader = new FileReader();
                 reader.onload = function fileReadCompleted() {
                     // when the reader is done, the content is in reader.result.
@@ -330,7 +330,7 @@
                         return;
                     }
 
-                    //setup["filename"] = this.files[0];
+                    setup["filename"] = window.hrmSetupFilename;
 
                     if (!hrmInit(setup)) {
                         this.files = null;
@@ -537,18 +537,23 @@ $("#step")[0].removeAttribute("disabled");
 
                 // Problem text
                 $("#setup-file-block")[0].setAttribute("hidden", "");
+                let uiSetupText = $("#setup-text-block");
 
-                if (setup.title.length > 0 || setup.description.length > 0) {
-                    $("#setup-text-block")[0].removeAttribute("hidden");
+                uiSetupText.append(`<h2>${(setup.title == undefined) ? setup.filename : setup.title}</h2>`);
 
-                    if (setup.title.length > 0) {
-                        $("#setup-title")[0].innerHTML = `<h2>${setup.title}</h2>`;
-                    }
+                switch (typeof(setup.description)) {
+                    case 'string': {
+                        uiSetupText.append(`<p>${setup.description}</p>`);
+                    } break;
 
-                    if (setup.description.length > 0) {
-                        $("#setup-descr")[0].innerHTML = setup.description;
-                    }
+                    case 'array': {
+                        for (description of setup.description) {
+                            uiSetupText.append(`<p>${description}</p>`);
+                        }
+                    } break;
                 }
+
+                uiSetupText[0].removeAttribute("hidden");
 
                 // Goals
                 this.hrmMachine.challenges = setup.challenges ?? new Object();
