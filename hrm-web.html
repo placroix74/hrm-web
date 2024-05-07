@@ -230,6 +230,7 @@
                     <td>
                         jump if zero <i>label</i><br />
                         jump zero <i>label</i><br />
+                        jumpz <i>label</i><br />
                         jzero <i>label</i><br />
                         jz <i>label</i>
                     </td>
@@ -785,15 +786,15 @@
                         continue;
                     }
 
-                    result = line.matchAll(/^(J(UMP(IF)?)?Z(ERO)?)([A-Z_\-]+)$/gi).next();
+                    result = line.matchAll(/^(J(UMP)?)(IF)?(Z(ERO)?)([A-Z_\-]+)$/gi).next();
                     if (!result.done) {
-                        this.hrmMachine.program.push(["JumpIfZero", result.value[5]]);
+                        this.hrmMachine.program.push(["JumpIfZero", result.value[6]]);
                         continue;
                     }
 
-                    result = line.matchAll(/^(J(UMP(IF)?)?NEG(ATIVE)?|JLZ)([A-Z_\-]+)$/gi).next();
+                    result = line.matchAll(/^(J(UMP)?)(IF)?(N(EG(ATIVE)?)?|L(ESSTHAN)?Z(ERO)?)([A-Z_\-]+)$/gi).next();
                     if (!result.done) {
-                        this.hrmMachine.program.push(["JumpIfNegative", result.value[5]]);
+                        this.hrmMachine.program.push(["JumpIfNegative", result.value[9]]);
                         continue;
                     }
 
