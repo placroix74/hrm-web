@@ -8,7 +8,7 @@
 		"size": 6,
 		"speed": 6
 	},
-	"memory": {"4":"B", "0":"U", "3":"G"},
+	"memory": ["U", "J", "X", "G", "B", "E"],
 	"datasets": [
 		{
 			"output": ["B","U","G"]

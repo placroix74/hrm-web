@@ -33,6 +33,9 @@
             [hidden] {
                 display: none;
             }
+            [success] {
+                background-color: lightgreen;
+            }
         </style>
     </head>
     <body style="max-width: 1024px;">
@@ -464,6 +467,8 @@
                 this.hrmMachine.constants = [];
                 this.hrmMachine.output = null;
                 this.hrmMachine.timeoutID = null;
+                this.hrmMachine.sizeGoal = null;
+                this.hrmMachine.speedGoal = null;
 
                 // initial state
 
@@ -544,6 +549,12 @@
                     if (setup.description.length > 0) {
                         $("#setup-descr")[0].innerHTML = setup.description;
                     }
+                }
+
+                // Goals
+                if (setup.goals != undefined) {
+                    this.hrmMachine.sizeGoal = setup.goals.size ?? null;
+                    this.hrmMachine.speedGoal = setup.goals.speed ?? null;
                 }
 
                 return true;
@@ -674,8 +685,11 @@
                     return;
                 }
                 for (entry of state.output.entries()) {
-                    if (entry[1] != this.hrmMachine.output[entry[0]])
-                        state.error = `Unexpected output: ${entry[1]}`;
+                    let expected = this.hrmMachine.output[entry[0]];
+                    let actual = entry[1];
+                    if (actual != expected) {
+                        state.error = `Bad outbox! Management expected ${expected}, but you outboxed ${actual}.`;
+                    }
                 }
             }
 
@@ -683,9 +697,36 @@
                 if (this.hrmMachine.output == null) {
                     return;
                 }
+
                 hrmValidateOutput(state);
-                if (state.error === false && nextState.output.length != this.hrmMachine.output.length) {
-                    state.error('Missing output');
+                if (state.error != null) {
+                    return;
+                }
+
+                let expected = this.hrmMachine.output.length;
+                let actual = state.output.length;
+                if (actual != expected) {
+                    state.error = `Not enough stuff in the OUTBOX! Management expected a total of ${expected} items, not ${actual}!`;
+                }
+
+                // speed goal
+
+                if (this.hrmMachine.speedGoal != null) {
+                    let uiCount = $("#count")[0];
+                    uiCount.value = `${state.count} / ${this.hrmMachine.speedGoal}`;
+                    if (state.count <= this.hrmMachine.speedGoal) {
+                        uiCount.setAttribute("success", "");
+                    }
+                }
+
+                // size goal
+
+                if (this.hrmMachine.sizeGoal != null) {
+                    let uiLength = $("#length")[0];
+                    uiLength.value = `${length} / ${this.hrmMachine.sizeGoal}`;
+                    if (length <= this.hrmMachine.sizeGoal) {
+                        uiLength.setAttribute("success", "");
+                    }
                 }
             }
 
@@ -869,9 +910,11 @@
                     }
                 }
 
+                let uiLength = $("#length")[0];
+
                 if (hasErrors) {
                     this.hrmMachine.program = [];
-                    $("#length")[0].value = null;
+                    uiLength.value = null;
                     return false;
                 }
 
@@ -886,7 +929,7 @@
                         continue;
                     ++length;
                 }
-                $("#length")[0].value = length;
+                uiLength.value = `${length}`;
 
                 return true;
             }
@@ -929,26 +972,17 @@
                 clearMessages();
 
                 let state = this.hrmMachine.states[this.hrmMachine.states.length - 1];
+
                 let instruction = this.hrmMachine.program[state.next];
                 if (instruction == undefined) {
                     logMessage("End of program reached");
                     return false;
                 }
 
-                if (state.halted)
-                    return true;
-
                 let nextState = hrmExec(state, instruction);
-
-                if (nextState.error != null) {
-                    logMessage(nextState.error, nextState.next);
-                    nextState.halted = true;
-                    return false;
-                }
 
                 if (nextState.halted) {
                     hrmValidateFinalOutput(nextState);
-                    logMessage(nextState.error ?? "End of input reached");
                     return false;
                 }
 
@@ -1049,12 +1083,14 @@
                     case "Inbox": {
                         let input = state.input.pop();
                         if (input == undefined) {
+                            logMessage(state.error ?? "End of input reached");
                             state.halted = true;
-                        } else {
-                            state.register = input;
-                            state.register_changed = true;
-                            state.input_changed = true;
+                            return state;
                         }
+
+                        state.register = input;
+                        state.register_changed = true;
+                        state.input_changed = true;
                     } break;
 
                     case "Outbox": {
@@ -1121,7 +1157,12 @@
                     }
                 }
 
-                ++state.count;
+                if (state.error != null) {
+                    logMessage(state.error, state.next);
+                } else {
+                    ++state.count;
+                }
+
                 return state;
             }
         </script>
