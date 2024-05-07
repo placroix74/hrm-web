@@ -414,7 +414,7 @@
 
             function logMessage(text, value) {
                 let uiMessages = $("#message-list");
-                let html = "<option value=" + value + ">" + text + "</option>";
+                let html = `<option value=${value}>${text}</option>`;
                 uiMessages.append(html);
             }
 
@@ -474,25 +474,30 @@
 
                 let hasErrors = false;
 
-                for (entry of setup.datasets[0].input.reverse().entries()) {
-                    try {
-                        state.input.push(parseItem(entry[1]));
-                    } catch (e) {
-                        logMessage("Invalid input value #" + entry[0] + " : " + entry[1]);
-                        hasErrors = true;
+                if (setup.datasets[0].input != undefined) {
+                    for (entry of setup.datasets[0].input.reverse().entries()) {
+                        try {
+                            state.input.push(parseItem(entry[1]));
+                        } catch (e) {
+                            logMessage(`Invalid input value #${entry[0]} : ${entry[1]}`);
+                            hasErrors = true;
+                        }
                     }
                 }
 
-                for (i = 0; i < 25; ++i) {
-                    try {
-                        state.memory.push(parseItem(setup.memory[i]));
-                    } catch (e) {
-                        logMessage("Invalid memory value #" + entry[0] + " : " + entry[1]);
-                        hasErrors = true;
+                if (setup.memory == undefined) {
+                    for (i = 0; i < 25; ++i) {
+                        state.memory.push(null);
                     }
-                }
-                while (state.memory.length < 25) {
-                    state.memory.push(null);
+                } else {
+                    for (i = 0; i < 25; ++i) {
+                        try {
+                            state.memory.push(parseItem(setup.memory[i]));
+                        } catch (e) {
+                            logMessage(`Invalid memory value #${entry[0]} : ${entry[1]}`);
+                            hasErrors = true;
+                        }
+                    }
                 }
 
                 if (setup.datasets[0].output != undefined) {
@@ -502,7 +507,7 @@
                         try {
                             this.hrmMachine.output.push(parseItem(entry[1]));
                         } catch (e) {
-                            logMessage("Invalid output value #" + entry[0] + " : " + entry[1]);
+                            logMessage(`Invalid output value #${entry[0]} : ${entry[1]}`);
                             hasErrors = true;
                         }
                     }
@@ -532,7 +537,7 @@
                     $("#setup-text-block")[0].removeAttribute("hidden");
 
                     if (setup.title.length > 0) {
-                        $("#setup-title")[0].innerHTML = "<h2>" + setup.title + "</h2>";
+                        $("#setup-title")[0].innerHTML = `<h2>${setup.title}</h2>`;
                     }
 
                     if (setup.description.length > 0) {
@@ -567,6 +572,9 @@
             }
 
             function hrmRender(state) {
+                if (this.hrmMachine == undefined) {
+                    return;
+                }
                 if (state == undefined) {
                     state = this.hrmMachine.states[this.hrmMachine.states.length - 1];
                 }
@@ -592,7 +600,7 @@
                 uiInput[0].innerHTML = null;
 
                 for (item of state.input.toReversed()) {
-                    let html = "<option>" + (item ?? "") + "</option>";
+                    let html = `<option>${(item ?? "")}</option>`;
                     uiInput.append(html);
                 }
 
@@ -610,9 +618,9 @@
 
                 for (entry of state.memory.entries()) {
                     let item = entry[1];
-                    let alias = this.hrmMachine.constants[entry[0]];
-                    alias = (alias == undefined) ? "" : ": " + alias;
-                    let html = "<option>" + (item ?? "") + alias + "</option>";
+                    let alias = this.hrmMachine.constants[entry[0]] ??
+                        (entry[0] < 10 ? `0${entry[0]}` : entry[0].toString());
+                    let html = `<option>${alias} : ${item ?? ""}</option>`;
                     uiMemory.append(html);
                 }
 
@@ -627,7 +635,7 @@
                 uiOutput[0].innerHTML = null;
 
                 for (item of state.output.toReversed()) {
-                    let html = "<option>" + (item ?? "") + "</option>";
+                    let html = `<option>${item ?? ""}</option>`;
                     uiOutput.append(html);
                 }
 
@@ -666,7 +674,7 @@
                 }
                 for (entry of state.output.entries()) {
                     if (entry[1] != this.hrmMachine.output[entry[0]])
-                        state.error = "Unexpected output: " + entry[1];
+                        state.error = `Unexpected output: ${entry[1]}`;
                 }
             }
 
@@ -807,7 +815,7 @@
 
                     // error
 
-                    logMessage("Line " + (this.hrmMachine.program.length + 1) + ": Syntax error", this.hrmMachine.program.length);
+                    logMessage("Syntax error", this.hrmMachine.program.length);
                     hasErrors = true;
 
                     this.hrmMachine.program.push(["NoOp"]);
@@ -838,7 +846,7 @@
                             } else {
                                 location = constants[item[1].toUpperCase()];
                                 if (location == undefined) {
-                                    logMessage("Line " + (entry[0] + 1) + ": Unrecognized constant: \"" + item[1] + "\"", entry[0]);
+                                    logMessage(`Unrecognized constant: \"${item[1]}\"`, entry[0]);
                                     hasErrors = true;
                                 } else {
                                     item[1] = location;
@@ -851,7 +859,7 @@
                         case "JumpIfNegative": {
                             let location = labels[item[1].toUpperCase()];
                             if (location == undefined) {
-                                logMessage("Line " + (entry[0] + 1) + ": Unrecognized jump location: \"" + item[1] + ":\"", entry[0]);
+                                logMessage(`Unrecognized jump location: \"${item[1]}\"`, entry[0]);
                                 hasErrors = true;
                             } else {
                                 item[1] = location;
@@ -922,7 +930,7 @@
                 let state = this.hrmMachine.states[this.hrmMachine.states.length - 1];
                 let instruction = this.hrmMachine.program[state.next];
                 if (instruction == undefined) {
-                    logMessage("Machine ran out of code");
+                    logMessage("End of program reached");
                     return false;
                 }
 
@@ -932,14 +940,14 @@
                 let nextState = hrmExec(state, instruction);
 
                 if (nextState.error != null) {
-                    logMessage("Line " + (nextState.next + 1) + ": " + nextState.error, nextState.next);
+                    logMessage(nextState.error, nextState.next);
                     nextState.halted = true;
                     return false;
                 }
 
                 if (nextState.halted) {
                     hrmValidateFinalOutput(nextState);
-                    logMessage(nextState.error ?? "No more input");
+                    logMessage(nextState.error ?? "End of input reached");
                     return false;
                 }
 
@@ -984,7 +992,7 @@
                     case "Decrement": {
                         value = state.memory[instruction[1]];
                         if (value == null) {
-                            state.error = "No value at address " + instruction[1];
+                            state.error = `No value at address ${instruction[1]}`;
                             return state;
                         }
                     } break;
@@ -1008,14 +1016,14 @@
                 switch (instruction[0]) {
                     case "Subtract": {
                         if (typeof(value) != typeof(state.register)) {
-                            state.error = "Cannot perform on: " + state.register + ", " + value;
+                            state.error = `Cannot perform on: ${state.register}, ${value}`;
                             return state;
                         }
                     } break;
 
                     case "Add": {
                         if (!Number.isInteger(state.register)) {
-                            state.error = "Cannot perform on: " + state.register;
+                            state.error = `Cannot perform on: ${state.register}, ${value}`;
                             return state;
                         }
                     } // fall through
@@ -1023,7 +1031,7 @@
                     case "Increment":
                     case "Decrement": {
                         if (!Number.isInteger(value)) {
-                            state.error = "Cannot perform on: " + value;
+                            state.error = `Cannot perform on: ${value}`;
                             return state;
                         }
                     } break;

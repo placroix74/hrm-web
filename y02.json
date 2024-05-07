@@ -1,0 +1,26 @@
+{
+	"title": "Year 2: Busy Mail Room",
+	"description": [
+		"Grab each thing from the INBOX, and drop each one into the OUTBOX.",
+		"Use the JUMP command! Place a LABEL within your program and use the JUMP command to make execution continue from there.",
+		"With this new ability you can complete this assignment using only 3 total commands."
+	],
+	"goals": {
+		"size": 3,
+		"speed": 25
+	},
+	"datasets": [
+		{
+			"input": [97,35,62],
+			"output": [97,35,62]
+		},
+		{
+			"input": [0,"A","W"],
+			"output": [0,"A","W"]
+		},
+		{
+			"input": ["A","K",16],
+			"output": ["A","K",16]
+		}
+	]
+}

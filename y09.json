@@ -1,0 +1,16 @@
+{
+	"title": "Year 9: Zero Preservation Initiative",
+	"description": [
+		"Send only the ZEROs to the OUTBOX."
+	],
+	"goals": {
+		"size": 5,
+		"speed": 25
+	},
+	"datasets": [
+		{
+			"input": [44,16,73,23],
+			"output": [132,48,219,69]
+		}
+	]
+}

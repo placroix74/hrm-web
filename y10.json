@@ -1,0 +1,17 @@
+{
+	"title": "Year 10: Octoplier Suite",
+	"description": [
+		"For each thing in the INBOX, multiply it by 8, and put the result in the OUTBOX.",
+		"Using a bunch of ADD commands is easy, but WASTEFUL! Can you do it using only 3 ADD commands? Management is watching."
+	],
+	"goals": {
+		"size": 5,
+		"speed": 25
+	},
+	"datasets": [
+		{
+			"input": [44,16,73,23],
+			"output": [132,48,219,69]
+		}
+	]
+}

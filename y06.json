@@ -1,0 +1,17 @@
+{
+	"title": "Year 6: Rainy Summer",
+	"description": [
+		"For each two things in the INBOX, add them together, and put the result in the OUTBOX.",
+		"Use a the ADD command! It ADDs the contents of a slot in Memory to whatever value is currently in Register."
+	],
+	"goals": {
+		"size": 6,
+		"speed": 24
+	},
+	"datasets": [
+		{
+			"input": [44,16,16,23,33,40,37,39],
+			"output": [60,39,73,76]
+		}
+	]
+}

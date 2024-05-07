@@ -1,0 +1,25 @@
+{
+	"title": "Year 1: Mail Room",
+	"description": [
+		"Type commands into the Program area.",
+		"Your program should tell your worker to grab each thing from the INBOX, and drop it into the OUTBOX."
+	],
+	"goals": {
+		"size": 6,
+		"speed": 6
+	},
+	"datasets": [
+		{
+			"input": [97,35,62],
+			"output": [97,35,62]
+		},
+		{
+			"input": [0,"A","W"],
+			"output": [0,"A","W"]
+		},
+		{
+			"input": ["A","K",16],
+			"output": ["A","K",16]
+		}
+	]
+}
