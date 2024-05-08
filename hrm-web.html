@@ -485,7 +485,15 @@
 
                 let hasErrors = false;
 
-                setup.datasets = setup.datasets ?? [];
+                if (typeof(setup.datasets) == 'string') {
+                    setup.datasets = eval(setup.datasets);
+
+                    if (typeof(setup.datasets) == 'function') {
+                        let datasets = [setup.datasets()];
+                        setup.datasets = datasets;
+                    }
+                }
+
                 if (setup.datasets[0]?.input != undefined) {
                     for (entry of setup.datasets[0].input.reverse().entries()) {
                         try {

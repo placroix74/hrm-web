@@ -11,18 +11,5 @@
 	"memory" : {
 		"size": 0
 	},
-	"datasets": [
-		{
-			"input": [97,35,62],
-			"output": [97,35,62]
-		},
-		{
-			"input": [0,"A","W"],
-			"output": [0,"A","W"]
-		},
-		{
-			"input": ["A","K",16],
-			"output": ["A","K",16]
-		}
-	]
+	"datasets": "new Function('let dataset = []; for (i = 0; i < 3; ++i) dataset.push(Math.trunc(Math.random() * 41) - 20); return {input: dataset, output: dataset};')"
 }
