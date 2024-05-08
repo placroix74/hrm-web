@@ -49,9 +49,12 @@
                 <td style="text-align: center; width: 33%;"><a href="#setup-instructions">Setup File Structure</a></td>
             </tr>
         </table>
-        <div id="setup-file-block">
-            <label for="setup-file">Machine Setup: </label>
-            <input type="file" id="setup-file" name="setup-file" />
+        <div id="level-selection">
+            <label for="levels">Level: </label>
+            <select id="levels" name="levels">
+                <option>&lt;Custom&gt;</option>
+            </select>
+            <input type="file" id="setup-file" />
         </div>
         <div id="setup-text-block" hidden>
         </div>
@@ -188,7 +191,7 @@
                 </tr>
                 <tr>
                     <td><i>command</i> [<i>address</i>]</td>
-                    <td>Access contents of a tile whose address is written on tile at <i>address</i></td>
+                    <td>Access a tile whose address is written on tile at <i>address</i></td>
                 </tr>
                 <tr>
                     <th colspan="2"><br />Branching</th>
@@ -275,36 +278,85 @@
             </div>
         </div>
         <script>
-                $("#setup-file").on("change", function (e) {
-                    if (this.files.length === 0) {
-                        console.log('No file selected.');
-                    return;
+            $(document).ready(function() {
+                onLoad = function(data) {
+                    window.hrmCustomLevel = null;
+                    window.hrmLevels = data;
+
+                    // populate dropdown
+                    uiLevels = $("#levels");
+                    for (entry of window.hrmLevels.entries()) {
+                        let level = entry[1];
+                        if (level.cutscene == true) {
+                            continue;
+                        }
+                        uiLevels.append(`<option value="${entry[0]}">Year ${level.number}</option>`);
+                    }
                 }
 
-                window.hrmSetupFilename = this.files[0].name;
+                fetch('level-data.json')
+                    .then(function(response) {
+                        return response.json();
+                    })
+                    .then(function(data) {
+                        onLoad(data);
+                    })
+                    .catch(function(error) {
+                        console.log('An error occurred:', error);
+                    });
+            });
+
+            $("#levels").on("change", function (e) {
+                let uiSetupText = $("#setup-text-block")[0].setAttribute("hidden", "");
+
+                let uiLevelSelect = $("#levels")[0];
+                let uiSetupFile = $("#setup-file")[0];
+
+                let level;
+                if (uiLevelSelect.value == "<Custom>") {
+                    uiSetupFile.removeAttribute("hidden");
+                    level = window.hrmCustomLevel;
+                } else {
+                    uiSetupFile.setAttribute("hidden", "");
+                    level = window.hrmLevels[uiLevelSelect.value];
+                }
+
+                if (level != null) {
+                    hrmInit(level);
+                }
+
+                hrmRender();
+                updateUi();
+            });
+
+            $("#setup-file").on("change", function (e) {
+                uiSetupFile = $("#setup-file")[0];
+                if (uiSetupFile.files.length === 0) {
+                    console.log('No file selected.');
+                    return;
+                }
 
                 const reader = new FileReader();
                 reader.onload = function fileReadCompleted() {
                     // when the reader is done, the content is in reader.result.
-                    let setup = null;
                     try {
-                        setup = JSON.parse(reader.result)
+                        let setup = JSON.parse(reader.result)
+
+                        if (hrmInit(setup)) {
+                            window.hrmCustomLevel = setup;
+                        } else {
+                            uiSetupFile.value = null;
+                        }
+
+                        hrmRender();
+                        updateUi();
                     } catch (e) {
+                        clearMessages();
                         logMessage(e);
-                        this.files = null;
-                        return;
+                        uiSetupFile.value = null;
                     }
-
-                    setup["filename"] = window.hrmSetupFilename.slice(0, window.hrmSetupFilename.lastIndexOf('.'));
-
-                    if (!hrmInit(setup)) {
-                        this.files = null;
-                    }
-
-                    hrmRender();
-                    updateUi();
                 };
-                reader.readAsText(this.files[0]);
+                reader.readAsText(uiSetupFile.files[0]);
             });
 
             $("#program").on("keyup", function (e) {
@@ -444,50 +496,46 @@
 
                 let hasErrors = false;
 
-                if (typeof(setup.datasets) == 'string') {
-                    setup.datasets = eval(setup.datasets);
+                let examples = setup.examples ?? [];
+                let example = examples[0] ?? {};
 
-                    if (typeof(setup.datasets) == 'function') {
-                        let datasets = [setup.datasets()];
-                        setup.datasets = datasets;
-                    }
-                }
-
-                if (setup.datasets[0]?.input != undefined) {
-                    for (entry of setup.datasets[0].input.toReversed().entries()) {
+                if (example.inbox != undefined) {
+                    for (entry of example.inbox.toReversed().entries()) {
                         try {
                             state.input.push(parseItem(entry[1]));
                         } catch (e) {
-                            logMessage(`Invalid input value #${entry[0]} : ${entry[1]}`);
+                            logMessage(`Invalid inbox value #${entry[0]} : ${entry[1]}`);
                             hasErrors = true;
                         }
                     }
                 }
 
-                this.hrmMachine.memorySize = setup.memory?.size ?? 25;
-                if (setup.memory?.contents == undefined) {
+                let floorRows = setup.floor?.rows ?? 0;
+                let floorCols = setup.floor?.cols ?? 0;
+                this.hrmMachine.memorySize = floorRows * floorCols;
+                if (setup.floor?.tiles == undefined) {
                     for (i = 0; i < this.hrmMachine.memorySize; ++i) {
                         state.memory.push(null);
                     }
                 } else {
                     for (i = 0; i < this.hrmMachine.memorySize; ++i) {
                         try {
-                            state.memory.push(parseItem(setup.memory.contents[i]));
+                            state.memory.push(parseItem(setup.floor.tiles[i]));
                         } catch (e) {
-                            logMessage(`Invalid memory value #${entry[0]} : ${entry[1]}`);
+                            logMessage(`Invalid tile value #${entry[0]} : ${entry[1]}`);
                             hasErrors = true;
                         }
                     }
                 }
 
-                if (setup.datasets[0]?.output != undefined) {
+                if (example.outbox != undefined) {
                     this.hrmMachine.output = [];
 
-                    for (entry of setup.datasets[0]?.output.entries()) {
+                    for (entry of example.outbox.entries()) {
                         try {
                             this.hrmMachine.output.push(parseItem(entry[1]));
                         } catch (e) {
-                            logMessage(`Invalid output value #${entry[0]} : ${entry[1]}`);
+                            logMessage(`Invalid outbox value #${entry[0]} : ${entry[1]}`);
                             hasErrors = true;
                         }
                     }
@@ -511,26 +559,15 @@
                 this.hrmMachine.states.push(state);
 
                 // Problem text
-                $("#setup-file-block")[0].setAttribute("hidden", "");
                 let uiSetupText = $("#setup-text-block");
+                uiSetupText[0].innerHTML = null;
 
-                uiSetupText.append(`<h2>${(setup.title == undefined) ? setup.filename : setup.title}</h2>`);
+                if (setup.name != undefined) {
+                    uiSetupText.append(`<h2>${setup.name}</h2>`);
+                }
 
-                switch (typeof(setup.description)) {
-                    case 'undefined':
-                    case 'null': {
-                        // nothing to do
-                    } break;
-
-                    case 'string': {
-                        uiSetupText.append(`<p>${setup.description}</p>`);
-                    } break;
-
-                    default: {
-                        for (description of setup.description) {
-                            uiSetupText.append(`<p>${description}</p>`);
-                        }
-                    }
+                if (setup.instructions != undefined) {
+                    uiSetupText.append(`<p>${setup.instructions.replace('\n', '</p><p>')}</p>`);
                 }
 
                 uiSetupText[0].removeAttribute("hidden");
