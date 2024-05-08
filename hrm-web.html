@@ -256,6 +256,7 @@
         <script>
             $(document).ready(function() {
                 onLoad = function(data) {
+                    window.hrmMachine = null;
                     window.hrmCustomLevel = null;
                     window.hrmLevels = data;
 
@@ -298,11 +299,11 @@
                 }
 
                 if (level != null) {
-                    hrmInit(level);
+                    hrmInit(hrmCreateMachine(level));
                 }
 
-                hrmRender();
-                updateUi();
+                hrmRender(window.hrmMachine);
+                updateUi(window.hrmMachine);
             });
 
             $("#setup-file").on("change", function (e) {
@@ -317,15 +318,14 @@
                     // when the reader is done, the content is in reader.result.
                     try {
                         let setup = JSON.parse(reader.result)
-
-                        if (hrmInit(setup)) {
+                        if (hrmInit(hrmCreateMachine(setup))) {
                             window.hrmCustomLevel = setup;
                         } else {
                             uiSetupFile.value = null;
                         }
 
-                        hrmRender();
-                        updateUi();
+                        hrmRender(window.hrmMachine);
+                        updateUi(window.hrmMachine);
                     } catch (e) {
                         clearMessages();
                         logMessage(e);
@@ -354,9 +354,9 @@
 
             $(":button").click(function (e) {
                 if (window.hrmMachine.programChanged) {
-                    hrmResetState();
+                    hrmResetState(window.hrmMachine);
 
-                    if (!hrmCompile()) {
+                    if (!hrmCompile(window.hrmMachine, $("#program")[0].value)) {
                         return;
                     }
 
@@ -365,24 +365,29 @@
 
                 switch (e.target.id) {
                     case "step": {
-                        hrmStep();
+                        if (!hrmStep(window.hrmMachine)) {
+                            hrmLogMachineErrors(window.hrmMachine);
+                            hrmValidateFinalOutput(window.hrmMachine);
+                        }
                     } break;
 
                     case "step-back": {
-                        hrmStepBack();
+                        hrmStepBack(window.hrmMachine);
                     } break;
 
                     case "run": {
                         oneStep = function() {
-                            if (hrmStep()) {
+                            if (hrmStep(window.hrmMachine)) {
                                 let delay = 1000 - $("#speed")[0].value;
                                 window.hrmMachine.timeoutID = setTimeout(oneStep, delay);
                             } else {
-                                hrmStop();
+                                hrmStop(window.hrmMachine);
+                                hrmLogMachineErrors(window.hrmMachine);
+                                hrmValidateFinalOutput(window.hrmMachine);
                             }
 
-                            hrmRender();
-                            updateUi();
+                            hrmRender(window.hrmMachine);
+                            updateUi(window.hrmMachine);
                         };
 
                         $("#program")[0].setAttribute("readonly", "");
@@ -396,13 +401,17 @@
                     } break;
 
                     case "reset": {
-                        hrmResetState();
+                        hrmResetState(window.hrmMachine);
                     } break;
                 }
 
-                hrmRender();
-                updateUi();
+                hrmRender(window.hrmMachine);
+                updateUi(window.hrmMachine);
             });
+
+            function clone(object) {
+                return JSON.parse(JSON.stringify(object));
+            }
 
             function clearMessages() {
                 let uiMessages = $("#message-list");
@@ -415,8 +424,8 @@
                 uiMessages.append(html);
             }
 
-            function updateUi() {
-                if (this.hrmMachine == undefined) {
+            function updateUi(machine) {
+                if (machine == null) {
                     $("#step-back")[0].setAttribute("disabled", "");
                     $("#run")[0].setAttribute("disabled", "");
                     $("#stop")[0].setAttribute("disabled", "");
@@ -426,14 +435,14 @@
                     $("#run")[0].removeAttribute("disabled");
                     $("#stop")[0].removeAttribute("disabled");
 
-                    if (this.hrmMachine.timeoutID != null) {
+                    if (machine.timeoutID != null) {
                         $("#step-back")[0].setAttribute("disabled", "");
                         $("#run")[0].setAttribute("hidden", "");
                         $("#stop")[0].removeAttribute("hidden");
                         $("#step")[0].setAttribute("disabled", "");
                         $("#reset")[0].setAttribute("disabled", "");
                     } else {
-                        if (this.hrmMachine.states.length > 1) {
+                        if (machine.states.length > 1) {
                             $("#step-back")[0].removeAttribute("disabled");
                         } else {
                             $("#step-back")[0].setAttribute("disabled", "");
@@ -447,92 +456,27 @@
                 }
             }
 
-            function hrmInit(setup) {
+            function hrmInit(machine, exampleIndex) {
                 clearMessages();
 
-                // initialize machine
+                hrmInitLevel(machine, exampleIndex);
 
-                this.hrmMachine = new Object();
-                this.hrmMachine.states = [];
-                this.hrmMachine.program = [];
-                this.hrmMachine.programLines = [];
-                this.hrmMachine.programLength = 0;
-                this.hrmMachine.programChanged = true;
-                this.hrmMachine.constants = [];
-                this.hrmMachine.output = null;
-                this.hrmMachine.timeoutID = null;
-
-                // initial state
-
-                let state = new Object();
-                state.register = null;
-                state.input = [];
-                state.memory = [];
-                state.output = [];
-
-                let hasErrors = false;
-
-                let examples = setup.examples ?? [];
-                let example = examples[0] ?? {};
-
-                if (example.inbox != undefined) {
-                    for (entry of example.inbox.toReversed().entries()) {
-                        try {
-                            state.input.push(parseItem(entry[1]));
-                        } catch (e) {
-                            logMessage(`Invalid inbox value #${entry[0]} : ${entry[1]}`);
-                            hasErrors = true;
-                        }
-                    }
-                }
-
-                let floorRows = setup.floor?.rows ?? 0;
-                let floorCols = setup.floor?.cols ?? 0;
-                this.hrmMachine.memorySize = floorRows * floorCols;
-                if (setup.floor?.tiles == undefined) {
-                    for (i = 0; i < this.hrmMachine.memorySize; ++i) {
-                        state.memory.push(null);
-                    }
-                } else {
-                    for (i = 0; i < this.hrmMachine.memorySize; ++i) {
-                        try {
-                            state.memory.push(parseItem(setup.floor.tiles[i]));
-                        } catch (e) {
-                            logMessage(`Invalid tile value #${entry[0]} : ${entry[1]}`);
-                            hasErrors = true;
-                        }
-                    }
-                }
-
-                if (example.outbox != undefined) {
-                    this.hrmMachine.output = [];
-
-                    for (entry of example.outbox.entries()) {
-                        try {
-                            this.hrmMachine.output.push(parseItem(entry[1]));
-                        } catch (e) {
-                            logMessage(`Invalid outbox value #${entry[0]} : ${entry[1]}`);
-                            hasErrors = true;
-                        }
-                    }
-                }
-
-                if (hasErrors) {
-                    this.hrmMachine = undefined;
+                if (machine.errors.length > 0) {
+                    hrmLogMachineErrors(machine);
                     return false;
                 }
 
-                state.output = [];
-                state.next = 0;
-                state.count = 0;
+                hrmSetMachine(machine);
+                return true;
+            }
 
-                state.error = null;
-                state.halted = false;
-                state.register_changed = false;
-                state.output_changed = false;
-                state.memory_changed = false;
+            function hrmSetMachine(machine) {
+                this.hrmMachine = machine;
+                hrmInitUI(machine);
+            }
 
-                this.hrmMachine.states.push(state);
+            function hrmInitUI(machine) {
+                let setup = machine?.setup ?? {};
 
                 // Problem text
                 let uiSetupText = $("#setup-text-block");
@@ -547,11 +491,96 @@
                 }
 
                 uiSetupText[0].removeAttribute("hidden");
+            }
 
-                // Goals
-                this.hrmMachine.challenges = setup.challenges ?? new Object();
+            function hrmCreateMachine(setup) {
+                // initialize machine
 
-                return true;
+                let machine = {
+                    states: [],
+                    program: [],
+                    programLines: [],
+                    programLength: 0,
+                    programChanged: true,
+                    constants: [],
+                    output: null,
+                    timeoutID: null,
+                    level: setup,
+                    currentExample: null,
+                    errors: []
+                };
+
+                return machine;
+            }
+
+            function hrmInitLevel(machine, exampleIndex) {
+                let level = machine.level ?? {};
+                let examples = level.examples ?? [];
+
+                let example = {};
+                if (examples.length > 0) {
+                    machine.currentExample = exampleIndex ?? Math.trunc(Math.random() * examples.length);
+                    example = examples[machine.currentExample];
+                }
+
+                let inbox = [];
+                if (example.inbox != undefined) {
+                    for (entry of example.inbox.toReversed().entries()) {
+                        try {
+                            inbox.push(parseItem(entry[1]));
+                        } catch (e) {
+                            machine.errors.push(`Invalid inbox value #${entry[0]} : ${entry[1]}`);
+                        }
+                    }
+                }
+
+                let floor = [];
+                let floorRows = level.floor?.rows ?? 0;
+                let floorCols = level.floor?.columns ?? 0;
+                machine.memorySize = floorRows * floorCols;
+                if (level.floor?.tiles == undefined) {
+                    for (i = 0; i < machine.memorySize; ++i) {
+                        floor.push(null);
+                    }
+                } else {
+                    for (i = 0; i < machine.memorySize; ++i) {
+                        try {
+                            floor.push(parseItem(level.floor.tiles[i]));
+                        } catch (e) {
+                            machine.errors.push(`Invalid tile value #${entry[0]} : ${entry[1]}`);
+                        }
+                    }
+                }
+
+                if (example.outbox != undefined) {
+                    machine.output = [];
+
+                    for (entry of example.outbox.entries()) {
+                        try {
+                            machine.output.push(parseItem(entry[1]));
+                        } catch (e) {
+                            machine.errors.push(`Invalid outbox value #${entry[0]} : ${entry[1]}`);
+                        }
+                    }
+                }
+
+                let state = {
+                    register: null,
+                    input: inbox,
+                    memory: floor,
+                    output: [],
+                    next: 0,
+                    count: 0,
+                    error: null,
+                    halted: false,
+                    register_changed: false,
+                    output_changed: false,
+                    memory_changed: false
+                };
+
+                machine.states = [state];
+
+                return machine;
             }
 
             function parseItem(item) {
@@ -577,13 +606,8 @@
                 throw new Error();
             }
 
-            function hrmRender(state) {
-                if (this.hrmMachine == undefined) {
-                    return;
-                }
-                if (state == undefined) {
-                    state = hrmGetLastState();
-                }
+            function hrmRender(machine) {
+                let state = hrmGetLastState(machine);
 
                 // register
 
@@ -624,7 +648,7 @@
 
                 for (entry of state.memory.entries()) {
                     let item = entry[1];
-                    let alias = this.hrmMachine.constants[entry[0]] ??
+                    let alias = machine.constants[entry[0]] ??
                         (entry[0] < 10 ? `0${entry[0]}` : entry[0].toString());
                     let html = `<option>${alias} : ${item ?? ""}</option>`;
                     uiMemory.append(html);
@@ -655,12 +679,14 @@
                 // next instruction
                 selectProgramLine(state.next);
 
+                let challenge = machine.level.challenge ?? {};
+
                 // speed goal
 
                 let uiCount = $("#count")[0];
-                if (state.halted && this.hrmMachine.challenges.speed != undefined) {
-                    uiCount.value = `${state.count} / ${this.hrmMachine.challenges.speed}`;
-                    if (state.count <= this.hrmMachine.challenges.speed) {
+                if (state.halted && challenge.speed != undefined) {
+                    uiCount.value = `${state.count} / ${challenge.speed}`;
+                    if (state.count <= challenge.speed) {
                         uiCount.setAttribute("success", "");
                     }
                 } else {
@@ -671,13 +697,13 @@
                 // size goal
 
                 let uiLength = $("#length")[0];
-                if (state.halted && this.hrmMachine.challenges.size != undefined) {
-                    uiLength.value = `${this.hrmMachine.programLength} / ${this.hrmMachine.challenges.size}`;
-                    if (this.hrmMachine.programLength <= this.hrmMachine.challenges.size) {
+                if (state.halted && challenge.size != undefined) {
+                    uiLength.value = `${machine.programLength} / ${challenge.size}`;
+                    if (machine.programLength <= challenge.size) {
                         uiLength.setAttribute("success", "");
                     }
                 } else {
-                    uiLength.value = `${this.hrmMachine.programLength}`;
+                    uiLength.value = `${machine.programLength}`;
                     uiLength.removeAttribute("success");
                 }
             }
@@ -700,13 +726,20 @@
                 uiProgram[0].setSelectionRange(start, end);
             }
 
-            function hrmValidateOutput(state) {
-                if (this.hrmMachine.output == null) {
+            function hrmLogMachineErrors(machine) {
+                for (error of machine.errors) {
+                    logMessage(error);
+                }
+                machine.errors = [];
+            }
+
+            function hrmValidateOutput(machine, state) {
+                if (machine.output == null) {
                     return true;
                 }
 
                 for (entry of state.output.entries()) {
-                    let expected = this.hrmMachine.output[entry[0]];
+                    let expected = machine.output[entry[0]];
                     let actual = entry[1];
                     if (actual != expected) {
                         state.error = `Bad outbox! Management expected ${expected}, but you outboxed ${actual}.`;
@@ -717,50 +750,84 @@
                 return true;
             }
 
-            function hrmValidateFinalOutput(state) {
-                if (this.hrmMachine.output == null) {
+            function hrmValidateFinalOutput(machine) {
+                if (machine == undefined) {
+                    return true;
+                }
+                if (machine.output == null) {
                     return true;
                 }
 
-                if (!hrmValidateOutput(state)) {
+                let state = hrmGetLastState(machine);
+                if (!hrmValidateOutput(machine, state)) {
                     return false;
                 }
 
-                let expected = this.hrmMachine.output.length;
+                let expected = machine.output.length;
                 let actual = state.output.length;
                 if (actual != expected) {
                     logMessage(`Not enough stuff in the OUTBOX! Management expected a total of ${expected} items, not ${actual}!`);
                     return false;
                 }
 
-                logMessage(`Congratulations!`);
-                if (this.hrmMachine.challenges.size != undefined) {
-                    logMessage(`Size Challenge: use ${this.hrmMachine.challenges.size} or fewer commands. Your current solution uses ${this.hrmMachine.programLength} commands`);
+                // validate against other examples
+                let failedExample = null;
+                let examples = machine.level.examples ?? [];
+                for (entry of examples.entries()) {
+                    if (entry[0] == machine.currentExample) {
+                        continue;
+                    }
+
+                    let example = entry[1];
+                    let testMachine = clone(machine);
+                    hrmInitLevel(testMachine, entry[0]);
+
+
+                    if (testMachine.errors.length == 0) {
+                        while (hrmStep(testMachine));
+                        let lastState = hrmGetLastState(testMachine);
+                        if (lastState.halted) {
+                            continue;
+                        }
+                    }
+
+                    // there were errors -- switch examples
+                    hrmResetState(testMachine);
+                    hrmSetMachine(testMachine);
+
+                    logMessage(`Aha! Your solution works with those specific inputs... but it FAILS on other possible inputs!`);
+                    logMessage(`Yes, here, I'll give you some inputs that cause your solution to fail, so you can see for yourself.`);
+                    return false;
                 }
-                if (this.hrmMachine.challenges.speed != undefined) {
-                    logMessage(`Speed Challenge: complete in ${this.hrmMachine.challenges.speed} or fewer steps. Your current solution completes in ${state.count} steps`);
+
+                logMessage(`Congratulations!`);
+
+                let challenge = machine.level.challenge ?? {};
+                if (challenge.size != undefined) {
+                    logMessage(`Size Challenge: use ${challenge.size} or fewer commands. Your current solution uses ${machine.programLength} commands`);
+                }
+                if (challenge.speed != undefined) {
+                    logMessage(`Speed Challenge: complete in ${machine.challenges.speed} or fewer steps. Your current solution completes in ${state.count} steps`);
                 }
 
                 return true;
             }
 
-            function hrmCompile() {
+            function hrmCompile(machine, programText) {
                 clearMessages();
 
                 let hasErrors = false;
-                this.hrmMachine.program = [];
-                this.hrmMachine.programLines = [];
-                this.hrmMachine.constants = [];
+                machine.program = [];
+                machine.programLines = [];
+                machine.constants = [];
 
                 let constants = new Object();
                 let labels = new Object();
-                let uiProgram = $("#program");
-                let programText = uiProgram[0].value;
 
                 let lineStart = 0;
 
                 for (line of programText.split('\n')) {
-                    this.hrmMachine.programLines.push(lineStart);
+                    machine.programLines.push(lineStart);
                     lineStart += line.length + 1;
 
                     line = line
@@ -768,7 +835,7 @@
                         .replace(/--.*$/g, '');  // remove comment
 
                     if (line == '') {
-                        this.hrmMachine.program.push(["NOP"]);
+                        machine.program.push(["NOP"]);
                         continue;
                     }
 
@@ -779,33 +846,33 @@
                         let address = result.value[1];
                         let name = result.value[2];
                         constants[name.toUpperCase()] = Number.parseInt(address);
-                        this.hrmMachine.constants[address] = name;
-                        this.hrmMachine.program.push(["NOP"]);
+                        machine.constants[address] = name;
+                        machine.program.push(["NOP"]);
                         continue;
                     }
 
                     result = line.matchAll(/^([A-Z_\-]+):$/gi).next();
                     if (!result.done) {
-                        labels[result.value[1].toUpperCase()] = this.hrmMachine.program.length;
-                        this.hrmMachine.program.push(["NOP"]);
+                        labels[result.value[1].toUpperCase()] = machine.program.length;
+                        machine.program.push(["NOP"]);
                         continue;
                     }
 
                     result = line.matchAll(/^INBOX$/gi).next();
                     if (!result.done) {
-                        this.hrmMachine.program.push(["INBOX"]);
+                        machine.program.push(["INBOX"]);
                         continue;
                     }
 
                     result = line.matchAll(/^OUTBOX$/gi).next();
                     if (!result.done) {
-                        this.hrmMachine.program.push(["OUTBOX"]);
+                        machine.program.push(["OUTBOX"]);
                         continue;
                     }
 
                     result = line.matchAll(/^COPYFROM(\[(\d+|[A-Z_\-]+)\]|(\d+|[A-Z_\-]+))$/gi).next();
                     if (!result.done) {
-                        this.hrmMachine.program.push((result.value[2] == undefined) ?
+                        machine.program.push((result.value[2] == undefined) ?
                             ["COPYFROM", result.value[3]] : ["pCOPYFROM", result.value[2]]
                         );
                         continue;
@@ -813,7 +880,7 @@
 
                     result = line.matchAll(/^COPYTO(\[(\d+|[A-Z_\-]+)\]|(\d+|[A-Z_\-]+))$/gi).next();
                     if (!result.done) {
-                        this.hrmMachine.program.push((result.value[2] == undefined) ?
+                        machine.program.push((result.value[2] == undefined) ?
                             ["COPYTO", result.value[3]] : ["pCOPYTO", result.value[2]]
                         );
                         continue;
@@ -821,7 +888,7 @@
 
                     result = line.matchAll(/^ADD(\[(\d+|[A-Z_\-]+)\]|(\d+|[A-Z_\-]+))$/gi).next();
                     if (!result.done) {
-                        this.hrmMachine.program.push((result.value[2] == undefined) ?
+                        machine.program.push((result.value[2] == undefined) ?
                             ["ADD", result.value[3]] : ["pADD", result.value[2]]
                         );
                         continue;
@@ -829,7 +896,7 @@
 
                     result = line.matchAll(/^SUB(\[(\d+|[A-Z_\-]+)\]|(\d+|[A-Z_\-]+))$/gi).next();
                     if (!result.done) {
-                        this.hrmMachine.program.push((result.value[2] == undefined) ?
+                        machine.program.push((result.value[2] == undefined) ?
                             ["SUB", result.value[3]] : ["pSUB", result.value[2]]
                         );
                         continue;
@@ -837,25 +904,25 @@
 
                     result = line.matchAll(/^JUMPN([A-Z_\-]+)$/gi).next();
                     if (!result.done) {
-                        this.hrmMachine.program.push(["JUMP IF NEGATIVE", result.value[1]]);
+                        machine.program.push(["JUMP IF NEGATIVE", result.value[1]]);
                         continue;
                     }
 
                     result = line.matchAll(/^JUMPZ([A-Z_\-]+)$/gi).next();
                     if (!result.done) {
-                        this.hrmMachine.program.push(["JUMP IF ZERO", result.value[1]]);
+                        machine.program.push(["JUMP IF ZERO", result.value[1]]);
                         continue;
                     }
 
                     result = line.matchAll(/^JUMP([A-Z_\-]+)$/gi).next();
                     if (!result.done) {
-                        this.hrmMachine.program.push(["JUMP", result.value[1]]);
+                        machine.program.push(["JUMP", result.value[1]]);
                         continue;
                     }
 
                     result = line.matchAll(/^BUMPUP(\[(\d+|[A-Z_\-]+)\]|(\d+|[A-Z_\-]+))$/gi).next();
                     if (!result.done) {
-                        this.hrmMachine.program.push((result.value[2] == undefined) ?
+                        machine.program.push((result.value[2] == undefined) ?
                             ["BUMP+", result.value[3]] : ["pBUMP+", result.value[2]]
                         );
                         continue;
@@ -863,7 +930,7 @@
 
                     result = line.matchAll(/^BUMPDN(\[(\d+|[A-Z_\-]+)\]|(\d+|[A-Z_\-]+))$/gi).next();
                     if (!result.done) {
-                        this.hrmMachine.program.push((result.value[2] == undefined) ?
+                        machine.program.push((result.value[2] == undefined) ?
                             ["BUMP-", result.value[3]] : ["pBUMP-", result.value[2]]
                         );
                         continue;
@@ -871,17 +938,17 @@
 
                     // error
 
-                    logMessage("Syntax error", this.hrmMachine.program.length);
+                    logMessage("Syntax error", machine.program.length);
                     hasErrors = true;
 
-                    this.hrmMachine.program.push(["NOP"]);
+                    machine.program.push(["NOP"]);
                 }
 
-                this.hrmMachine.programLines.push(programText.length);
+                machine.programLines.push(programText.length);
 
                 // resolve addresses / map labels and constants
 
-                for (entry of this.hrmMachine.program.entries()) {
+                for (entry of machine.program.entries()) {
                     let item = entry[1];
                     switch (item[0]) {
                         case "COPYFROM":
@@ -924,104 +991,92 @@
                     }
                 }
 
-                this.hrmMachine.programLength = 0;
+                machine.programLength = 0;
 
                 if (hasErrors) {
-                    this.hrmMachine.program = [];
+                    machine.program = [];
                     return false;
                 }
 
                 // remove trailing NOP's
-                while (this.hrmMachine.program.length > 0) {
-                    let lastInstruction = this.hrmMachine.program[this.hrmMachine.program.length - 1];
+                while (machine.program.length > 0) {
+                    let lastInstruction = machine.program[machine.program.length - 1];
                     if (lastInstruction[0] != "NOP") {
                         break;
                     }
-                    this.hrmMachine.program.pop();
+                    machine.program.pop();
                 }
 
-                if (this.hrmMachine.program.length == 0) {
+                if (machine.program.length == 0) {
                     logMessage("No program");
                     return false;
                 }
 
                 // program length
-                for (item of this.hrmMachine.program) {
+                for (item of machine.program) {
                     if (item[0] == "NOP")
                         continue;
-                    ++this.hrmMachine.programLength;
+                    ++machine.programLength;
                 }
 
                 return true;
             }
 
-            function hrmGetLastState() {
-                if (this.hrmMachine == undefined || this.hrmMachine.states.length == 0) {
+            function hrmGetLastState(machine) {
+                if (/*machine == null ||*/ machine.states.length == 0) {
                     return null;
                 }
-                return this.hrmMachine.states[this.hrmMachine.states.length - 1];
+                return machine.states[machine.states.length - 1];
             }
 
-            function hrmResetState() {
-                if (this.hrmMachine != undefined) {
-                    this.hrmMachine.states = this.hrmMachine.states.slice(0, 1);
-                }
-                clearMessages();
+            function hrmResetState(machine) {
+                machine.states = machine.states.slice(0, 1);
             }
 
-            function hrmResetProgram() {
-                if (this.hrmMachine != undefined) {
-                    this.hrmMachine.program = [];
-                    $("#length")[0].value = null;
-                }
-            }
-
-            function hrmStop() {
-                if (window.hrmMachine.timeoutID != null) {
-                    clearTimeout(window.hrmMachine.timeoutID);
+            function hrmStop(machine) {
+                if (machine.timeoutID != null) {
+                    clearTimeout(machine.timeoutID);
                 }
 
-                window.hrmMachine.timeoutID = null;
+                machine.timeoutID = null;
                 $("#program")[0].removeAttribute("readonly");
             }
 
-            function hrmStepBack() {
-                if (this.hrmMachine.states.length <= 1) {
+            function hrmStepBack(machine) {
+                if (machine.states.length <= 1) {
                     return;
                 }
 
                 clearMessages();
 
-                this.hrmMachine.states.pop();
+                machine.states.pop();
             }
 
 
-            function hrmStep() {
+            function hrmStep(machine) {
                 clearMessages();
 
-                let state = hrmGetLastState();
+                let state = hrmGetLastState(machine);
                 if (state.halted) {
                     return false;
                 }
 
-                let instruction = this.hrmMachine.program[state.next];
-                let nextState = cloneState(state);
-                hrmExec(nextState, instruction);
+                let instruction = machine.program[state.next];
+                let nextState = clone(state);
+                hrmExec(machine, nextState, instruction);
+                
                 if (nextState.error) {
+                    machine.errors.push(nextState.error);
                     return false;
                 }
 
-                this.hrmMachine.states.push(nextState);
-                if (nextState.halted) {
-                    hrmValidateFinalOutput(nextState);
-                    return false;
+                if (nextState.next == machine.program.length) {
+                    logMessage("End of program reached");
+                    nextState.halted = true;
                 }
 
-                return true;
-            }
-
-            function cloneState(state) {
-                return JSON.parse(JSON.stringify(state));
+                machine.states.push(nextState);
+                return !nextState.halted;
             }
 
             function hrmGetRegister(state, operation) {
@@ -1033,7 +1088,7 @@
             }
 
             function hrmGetMemory(state, slot, operation) {
-                if (0 > slot || slot >= this.hrmMachine.memorySize) {
+                if (0 > slot || slot >= state.memory.length) {
                     state.error = `Bad tile address! Tile with address ${slot} doesn't even exist! Where do you think you're going?`;
                     return null;
                 }
@@ -1070,7 +1125,7 @@
                 return (state.error == null);
             }
 
-            function hrmExec(state, instruction) {
+            function hrmExec(machine, state, instruction) {
                 // indirect addressing
                 let operation = instruction[0];
                 switch (operation) {
@@ -1125,7 +1180,7 @@
                             state.register_changed = true;
                             state.output_changed = true;
 
-                            hrmValidateOutput(state);
+                            hrmValidateOutput(machine, state);
                         }
                     } break;
 
@@ -1217,18 +1272,8 @@
                     }
                 }
 
-                if (state.error != null) {
-                    logMessage(state.error, state.next);
-                } else {
-                    if (operation != "NOP") {
-                        ++state.count;
-                    }
-
-                    if (state.next == this.hrmMachine.program.length) {
-                        logMessage("End of program reached");
-                        state.halted = true;
-                        return false;
-                    }
+                if (state.error == null && operation != "NOP") {
+                    ++state.count;
                 }
 
                 return state;
