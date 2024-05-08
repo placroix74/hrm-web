@@ -2,9 +2,7 @@
 An interactive, browser-based [Human Resource Machine](https://tomorrowcorporation.com/humanresourcemachine) simulator.
 
 ## Why?
-As a software developer, I enjoyed the original game, but I prefer to _write_ code than drag code blocks.
-
-Unfortunately, the game did not come with [a level editor](https://steamcommunity.com/app/375820/discussions/0/351659808488235380/).
+The game did not come with [a level editor](https://steamcommunity.com/app/375820/discussions/0/351659808488235380/).
 
 ## Prior Art
 - https://github.com/ymizushi/hrm-js : non-interactive(?), Node.js-based
