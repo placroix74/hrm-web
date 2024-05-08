@@ -785,7 +785,7 @@
 
                     line = line
                         .replace(/\s+/g, '')  // remove all whitespace
-                        .replace(/#.*$/g, '');  // remove comment
+                        .replace(/--.*$/g, '');  // remove comment
 
                     if (line == '') {
                         this.hrmMachine.program.push(["NOP"]);
@@ -794,7 +794,7 @@
 
                     let result = null;
 
-                    result = line.matchAll(/^(NAME)?TILE(\d+)([A-Z_\-]+)$/gi).next();
+                    result = line.matchAll(/^DEFINELABEL(\d+)([A-Z_\-]+)$/gi).next();
                     if (!result.done) {
                         let address = result.value[2];
                         let name = result.value[3];
@@ -811,19 +811,19 @@
                         continue;
                     }
 
-                    result = line.matchAll(/^IN(BOX)?$/gi).next();
+                    result = line.matchAll(/^INBOX$/gi).next();
                     if (!result.done) {
                         this.hrmMachine.program.push(["INBOX"]);
                         continue;
                     }
 
-                    result = line.matchAll(/^OUT(BOX)?$/gi).next();
+                    result = line.matchAll(/^OUTBOX$/gi).next();
                     if (!result.done) {
                         this.hrmMachine.program.push(["OUTBOX"]);
                         continue;
                     }
 
-                    result = line.matchAll(/^(COPY)?FROM(\[(\d+|[A-Z_\-]+)\]|(\d+|[A-Z_\-]+))$/gi).next();
+                    result = line.matchAll(/^COPYFROM(\[(\d+|[A-Z_\-]+)\]|(\d+|[A-Z_\-]+))$/gi).next();
                     if (!result.done) {
                         this.hrmMachine.program.push((result.value[3] == undefined) ?
                             ["COPYFROM", result.value[4]] : ["pCOPYFROM", result.value[3]]
@@ -831,7 +831,7 @@
                         continue;
                     }
 
-                    result = line.matchAll(/^(COPY)?TO(\[(\d+|[A-Z_\-]+)\]|(\d+|[A-Z_\-]+))$/gi).next();
+                    result = line.matchAll(/^COPYTO(\[(\d+|[A-Z_\-]+)\]|(\d+|[A-Z_\-]+))$/gi).next();
                     if (!result.done) {
                         this.hrmMachine.program.push((result.value[3] == undefined) ?
                             ["COPYTO", result.value[4]] : ["pCOPYTO", result.value[3]]
@@ -847,7 +847,7 @@
                         continue;
                     }
 
-                    result = line.matchAll(/^SUB(TRACT)?(\[(\d+|[A-Z_\-]+)\]|(\d+|[A-Z_\-]+))$/gi).next();
+                    result = line.matchAll(/^SUB(\[(\d+|[A-Z_\-]+)\]|(\d+|[A-Z_\-]+))$/gi).next();
                     if (!result.done) {
                         this.hrmMachine.program.push((result.value[3] == undefined) ?
                             ["SUB", result.value[4]] : ["pSUB", result.value[3]]
@@ -855,25 +855,25 @@
                         continue;
                     }
 
-                    result = line.matchAll(/^(J(UMP)?)(IF)?(N(EG(ATIVE)?)?|L(ESSTHAN)?Z(ERO)?)([A-Z_\-]+)$/gi).next();
+                    result = line.matchAll(/^JUMPN([A-Z_\-]+)$/gi).next();
                     if (!result.done) {
-                        this.hrmMachine.program.push(["JUMPIFNEGATIVE", result.value[9]]);
+                        this.hrmMachine.program.push(["JUMP IF NEGATIVE", result.value[9]]);
                         continue;
                     }
 
-                    result = line.matchAll(/^(J(UMP)?)(IF)?(Z(ERO)?)([A-Z_\-]+)$/gi).next();
+                    result = line.matchAll(/^JUMPZ([A-Z_\-]+)$/gi).next();
                     if (!result.done) {
-                        this.hrmMachine.program.push(["JUMPIFZERO", result.value[6]]);
+                        this.hrmMachine.program.push(["JUMP IF ZERO", result.value[6]]);
                         continue;
                     }
 
-                    result = line.matchAll(/^(J(U)?MP)([A-Z_\-]+)$/gi).next();
+                    result = line.matchAll(/^JUMP([A-Z_\-]+)$/gi).next();
                     if (!result.done) {
                         this.hrmMachine.program.push(["JUMP", result.value[3]]);
                         continue;
                     }
 
-                    result = line.matchAll(/^(BUMP(UP|\+)|INC(REMENT)?)(\[(\d+|[A-Z_\-]+)\]|(\d+|[A-Z_\-]+))$/gi).next();
+                    result = line.matchAll(/^BUMPUP(\[(\d+|[A-Z_\-]+)\]|(\d+|[A-Z_\-]+))$/gi).next();
                     if (!result.done) {
                         this.hrmMachine.program.push((result.value[5] == undefined) ?
                             ["BUMP+", result.value[6]] : ["pBUMP+", result.value[4]]
@@ -881,7 +881,7 @@
                         continue;
                     }
 
-                    result = line.matchAll(/^(BUMP(D(OW)?N|-)|DEC(REMENT)?)(\[(\d+|[A-Z_\-]+)\]|(\d+|[A-Z_\-]+))$/gi).next();
+                    result = line.matchAll(/^BUMPDN(\[(\d+|[A-Z_\-]+)\]|(\d+|[A-Z_\-]+))$/gi).next();
                     if (!result.done) {
                         this.hrmMachine.program.push((result.value[6] == undefined) ?
                             ["BUMP-", result.value[7]] : ["pBUMP-", result.value[5]]
@@ -931,8 +931,8 @@
                         } break;
 
                         case "JUMP":
-                        case "JUMPIFZERO":
-                        case "JUMPIFNEGATIVE": {
+                        case "JUMP IF ZERO":
+                        case "JUMP IF NEGATIVE": {
                             let location = labels[item[1].toUpperCase()];
                             if (location == undefined) {
                                 logMessage(`Unrecognized jump location: \"${item[1]}\"`, entry[0]);
@@ -1219,14 +1219,14 @@
                         state.next = instruction[1];
                     } break;
 
-                    case "JUMPIFZERO": {
+                    case "JUMP IF ZERO": {
                         let value = hrmGetRegister(state);
                         if (value != null) {
                             state.next = (Number.isInteger(value) && value == 0) ? instruction[1] : state.next + 1;
                         }
                     } break;
 
-                    case "JUMPIFNEGATIVE": {
+                    case "JUMP IF NEGATIVE": {
                         let value = hrmGetRegister(state);
                         if (value != null) {
                             state.next = (Number.isInteger(value) && value < 0) ? instruction[1] : state.next + 1;
