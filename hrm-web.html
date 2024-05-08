@@ -133,74 +133,51 @@
                     <th colspan="2"><br />Input / Output</th>
                 </tr>
                 <tr>
-                    <td># <i>comment</i></td>
-                    <td>Anything following "#" is not considered code, anywhere on a line</td>
+                    <td>-- <i>comment</i></td>
+                    <td>Anything following "--" is not considered code, anywhere on a line</td>
                 </tr>
                 <tr>
-                    <td>
-                        inbox<br />
-                        in
-                    </td>
+                    <td>INBOX</td>
                     <td>Pick up next value from the Inbox</td>
                 </tr>
                 <tr>
-                    <td>
-                        outbox<br />
-                        out
-                    </td>
+                    <td>OUTBOX</td>
                     <td>Put currently held value in the Outbox</td>
                 </tr>
                 <tr>
-                    <td>
-                        copy from <i>address</i><br />
-                        from <i>address</i>
-                    </td>
+                    <td>COPYFROM <i>address</i></td>
                     <td>Pick up contents of tile at <i>address</i></td>
                 </tr>
                 <tr>
-                    <td>
-                        copy to <i>address</i><br />
-                        to <i>address</i>
-                    </td>
+                    <td>COPYTO <i>address</i></td>
                     <td>Write currently held value on tile at <i>address</i></td>
                 </tr>
                 <tr>
                     <th colspan="2"><br />Arithmetic</th>
                 </tr>
                 <tr>
-                    <td>add <i>address</i></td>
+                    <td>ADD <i>address</i></td>
                     <td>
                         Add contents of tile at <i>address</i> to currently held value<br />
                         <b>NOTE:</b> Only numbers can be added
                     </td>
                 </tr>
                 <tr>
-                    <td>
-                        subtract <i>address</i><br />
-                        sub <i>address</i>
-                    </td>
+                    <td>SUB <i>address</i></td>
                     <td>
                         Subtract contents of tile at <i>address</i> from currently held value<br />
                         <b>NOTE:</b> Only numbers can be subtracted from numbers, or letters from letters
                     </td>
                 </tr>
                 <tr>
-                    <td>
-                        bump+ <i>address</i><br />
-                        increment <i>address</i><br />
-                        inc <i>address</i>
-                    </td>
+                    <td>BUMPUP <i>address</i></td>
                     <td>
                         Subtract one to the tile at <i>address</i> and pick up the result<br />
                         <b>NOTE:</b> Only numbers can be bumped
                     </td>
                 </tr>
                 <tr>
-                    <td>
-                        bump- <i>address</i><br />
-                        decrement <i>address</i><br />
-                        dec <i>address</i>
-                    </td>
+                    <td>BUMPDN <i>address</i></td>
                     <td>
                         Subtract one from the tile at <i>address</i> and pick up the result<br />
                         <b>NOTE:</b> Only numbers can be bumped
@@ -221,33 +198,18 @@
                     <td>Define a jump location named <i>label</i></td>
                 </tr>
                 <tr>
-                    <td>
-                        jump <i>label</i><br />
-                        jmp <i>label</i>
-                    </td>
+                    <td>JUMP <i>label</i></td>
                     <td>Continue program execution from <i>label</i></td>
                 </tr>
                 <tr>
-                    <td>
-                        jump if zero <i>label</i><br />
-                        jump zero <i>label</i><br />
-                        jumpz <i>label</i><br />
-                        jzero <i>label</i><br />
-                        jz <i>label</i>
-                    </td>
+                    <td>JUMPZ <i>label</i></td>
                     <td>
                         Jump to <i>label</i> if currently held value is zero<br />
                         <b>NOTE:</b> Does nothing unless the value in hand is a number
                     </td>
                 </tr>
                 <tr>
-                    <td>
-                        jump if negative <i>label</i><br />
-                        jump negative <i>label</i><br />
-                        jumpn <i>label</i><br />
-                        jn <i>label</i><br />
-                        jlz <i>label</i>
-                    </td>
+                    <td>JUMPN <i>label</i></td>
                     <td>
                         Jump to <i>label</i> if currently held value is negative<br />
                         <b>NOTE:</b> Does nothing unless the value in hand is a number
@@ -257,11 +219,8 @@
                     <th colspan="2"><br />Tile naming</th>
                 </tr>
                 <tr>
-                    <td>
-                        name tile <i>address</i> <i>name</i><br />
-                        tile <i>address</i> <i>name</i><br />
-                    </td>
-                    <td>Name the tile at <i>address</i></td>
+                    <td>DEFINE LABEL <i>address</i> <i>label</i></td>
+                    <td>Label the tile at <i>address</i></td>
                 </tr>
             </table>
         </div>
@@ -804,8 +763,8 @@
 
                     result = line.matchAll(/^DEFINELABEL(\d+)([A-Z_\-]+)$/gi).next();
                     if (!result.done) {
-                        let address = result.value[2];
-                        let name = result.value[3];
+                        let address = result.value[1];
+                        let name = result.value[2];
                         constants[name.toUpperCase()] = Number.parseInt(address);
                         this.hrmMachine.constants[address] = name;
                         this.hrmMachine.program.push(["NOP"]);
@@ -833,16 +792,16 @@
 
                     result = line.matchAll(/^COPYFROM(\[(\d+|[A-Z_\-]+)\]|(\d+|[A-Z_\-]+))$/gi).next();
                     if (!result.done) {
-                        this.hrmMachine.program.push((result.value[3] == undefined) ?
-                            ["COPYFROM", result.value[4]] : ["pCOPYFROM", result.value[3]]
+                        this.hrmMachine.program.push((result.value[2] == undefined) ?
+                            ["COPYFROM", result.value[3]] : ["pCOPYFROM", result.value[2]]
                         );
                         continue;
                     }
 
                     result = line.matchAll(/^COPYTO(\[(\d+|[A-Z_\-]+)\]|(\d+|[A-Z_\-]+))$/gi).next();
                     if (!result.done) {
-                        this.hrmMachine.program.push((result.value[3] == undefined) ?
-                            ["COPYTO", result.value[4]] : ["pCOPYTO", result.value[3]]
+                        this.hrmMachine.program.push((result.value[2] == undefined) ?
+                            ["COPYTO", result.value[3]] : ["pCOPYTO", result.value[2]]
                         );
                         continue;
                     }
@@ -857,42 +816,42 @@
 
                     result = line.matchAll(/^SUB(\[(\d+|[A-Z_\-]+)\]|(\d+|[A-Z_\-]+))$/gi).next();
                     if (!result.done) {
-                        this.hrmMachine.program.push((result.value[3] == undefined) ?
-                            ["SUB", result.value[4]] : ["pSUB", result.value[3]]
+                        this.hrmMachine.program.push((result.value[2] == undefined) ?
+                            ["SUB", result.value[3]] : ["pSUB", result.value[2]]
                         );
                         continue;
                     }
 
                     result = line.matchAll(/^JUMPN([A-Z_\-]+)$/gi).next();
                     if (!result.done) {
-                        this.hrmMachine.program.push(["JUMP IF NEGATIVE", result.value[9]]);
+                        this.hrmMachine.program.push(["JUMP IF NEGATIVE", result.value[1]]);
                         continue;
                     }
 
                     result = line.matchAll(/^JUMPZ([A-Z_\-]+)$/gi).next();
                     if (!result.done) {
-                        this.hrmMachine.program.push(["JUMP IF ZERO", result.value[6]]);
+                        this.hrmMachine.program.push(["JUMP IF ZERO", result.value[1]]);
                         continue;
                     }
 
                     result = line.matchAll(/^JUMP([A-Z_\-]+)$/gi).next();
                     if (!result.done) {
-                        this.hrmMachine.program.push(["JUMP", result.value[3]]);
+                        this.hrmMachine.program.push(["JUMP", result.value[1]]);
                         continue;
                     }
 
                     result = line.matchAll(/^BUMPUP(\[(\d+|[A-Z_\-]+)\]|(\d+|[A-Z_\-]+))$/gi).next();
                     if (!result.done) {
-                        this.hrmMachine.program.push((result.value[5] == undefined) ?
-                            ["BUMP+", result.value[6]] : ["pBUMP+", result.value[4]]
+                        this.hrmMachine.program.push((result.value[2] == undefined) ?
+                            ["BUMP+", result.value[3]] : ["pBUMP+", result.value[2]]
                         );
                         continue;
                     }
 
                     result = line.matchAll(/^BUMPDN(\[(\d+|[A-Z_\-]+)\]|(\d+|[A-Z_\-]+))$/gi).next();
                     if (!result.done) {
-                        this.hrmMachine.program.push((result.value[6] == undefined) ?
-                            ["BUMP-", result.value[7]] : ["pBUMP-", result.value[5]]
+                        this.hrmMachine.program.push((result.value[2] == undefined) ?
+                            ["BUMP-", result.value[3]] : ["pBUMP-", result.value[2]]
                         );
                         continue;
                     }
