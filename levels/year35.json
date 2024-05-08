@@ -1,0 +1,18 @@
+{
+	"title": "Year 35: Duplicate Removal",
+	"description": "Send everything from the INBOX to the OUTBOX, unless you've seen the same value before. Discard any duplicates.",
+	"challenges": {
+		"size": 17,
+		"speed": 167
+	},
+	"memory" : {
+		"size": 15,
+		"contents": {"14": 0}
+	},
+	"datasets": [
+		{
+			"input": ["B", "B", "A", "E", "A", "E", "E", "A", "C", "C"],
+			"output": ["B", "A", "E", "A", "E", "A", "C"]
+		}
+	]
+}

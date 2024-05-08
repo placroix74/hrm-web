@@ -1,0 +1,18 @@
+{
+	"title": "Year 40: Prime Factory",
+	"description": "For each thing in the INBOX, send its PRIME FACTORS to the OUTBOX in order from smallest to largest.",
+	"challenges": {
+		"size": 28,
+		"speed": 399
+	},
+	"memory" : {
+		"size": 25,
+		"contents": {"24": 0}
+	},
+	"datasets": [
+		{
+			"input": [15, 19, 14],
+			"output": [3, 5, 19, 2, 7]
+		}
+	]
+}

@@ -1,0 +1,18 @@
+{
+	"title": "Year 30: String Storage Floor",
+	"description": "Each thing in the INBOX is an address of a tile on the floor. For each address provided in the INBOX, OUTBOX the requested item from the floor and ALL FOLLOWING items on the floor until you reach a ZERO. Repeat!",
+	"challenges": {
+		"size": 7,
+		"speed": 203
+	},
+	"memory" : {
+		"size": 25,
+		"contents": ["G", "E", "T", 0, "T", "H", "0", "T", "A", "R", 0, "A", "W", "A", "K", "E", 0, "I", "S", 0, "X", "X", "X", 0]
+	},
+	"datasets": [
+		{
+			"input": [4, 15, 7, 0, 21, 17, 11, 21, 2, 13, 4, 17, 22],
+			"output": ["T", "H", "E", "T", "A", "R", "G", "E", "T", "X", "X", "I", "S", "A", "W", "A", "K", "E", "X", "X", "T", "A", "K", "E", "T", "H", "I", "S", "X"]
+		}
+	]
+}

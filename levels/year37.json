@@ -1,0 +1,29 @@
+{
+	"title": "Year 37: Scavenger Chain",
+	"description": [
+		"Each pair on the floor contains:",
+		"<ol><li>data</li><li>the address of another one of the pairs</li></ol>",
+		"A scrambled chain! Each thing in the INBOX is an address of one of the pairs. OUTBOX the data for that pair, and also the data in all following pairs in the chain. The chain ends when you reach a negative address. Repeat until the INBOX is empty."
+	],
+	"challenges": {
+		"size": 8,
+		"speed": 63
+	},
+	"memory" : {
+		"size": 25,
+		"contents": {
+			"0": "E", "1": 13,
+			"3": "C", "4": 23,
+			"10": "P", "11": 20,
+			"13": "S", "14": 3,
+			"20": "E", "21": -1,
+			"23": "A", "24": 10
+		}
+	},
+	"datasets": [
+		{
+			"input": [0, 23],
+			"output": ["E", "S", "C", "A", "P", "E"]
+		}
+	]
+}

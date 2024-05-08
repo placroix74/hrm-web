@@ -1,0 +1,17 @@
+{
+	"title": "Year 28: Three Sort",
+	"description": "For each THREE THINGS in the INBOX, send them to the OUTBOX in order from smallest to largest.",
+	"challenges": {
+		"size": 34,
+		"speed": 78
+	},
+	"memory" : {
+		"size": 10
+	},
+	"datasets": [
+		{
+			"input": [7, 4, 1, 3, 6, 7, -2, 2, 8, 6, -4, 5],
+			"output": [1, 4, 7, 3, 6, 7, -2, 2, 8, -4, 5, 6]
+		}
+	]
+}

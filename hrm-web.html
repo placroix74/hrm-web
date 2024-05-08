@@ -72,7 +72,7 @@
             <table style="width: 100%;">
                 <tr>
                     <th id="input-header">Inbox</th>
-                    <th>Carpet Tiles</th>
+                    <th>Floor Tiles</th>
                     <th id="output-header">Outbox</th>
                     <th>Program</th>
                 </tr>
@@ -271,8 +271,8 @@
             <ul>
                 <li>The problem title; if missing, the filename will be used</li>
                 <li>The description of the task the program should perform, either as a string or an array of strings</li>
-                <li>The carpet size; if omitted, the default of 25</li>
-                <li>The carpet contents, either as:
+                <li>The floor size; if omitted, the default of 25</li>
+                <li>The contents of floor tiles, either as:
                     <ul>
                         <li>An array; values beyond the specified size will be ignored</li>
                         <li>An object with tile addresses as keys, e.g.: <pre>{ "24": 1, ... }</pre></li>
@@ -285,7 +285,7 @@
                     <li>The <i>expected</i> contents of the Outbox, once the program has completed</li>
                 </ul>
             </ul>
-            The carpet initialization vector, Inbox and Outbox may only contain the following:<br/>
+            The Floor Tiles, Inbox and Outbox may only contain the following:<br/>
             <ul>
                 <li>
                     Empty values, e.g.: null, ""
@@ -303,6 +303,7 @@
     "title": "Year 40: Sorting Floor",
     "description": "Sort the input",
     "memory": {
+        "size": 25,
         "contents": {"24": 0}
     },
     "datasets": [
@@ -335,7 +336,7 @@
                         return;
                     }
 
-                    setup["filename"] = window.hrmSetupFilename;
+                    setup["filename"] = window.hrmSetupFilename.slice(0, window.hrmSetupFilename.lastIndexOf('.'));
 
                     if (!hrmInit(setup)) {
                         this.files = null;
@@ -484,7 +485,8 @@
 
                 let hasErrors = false;
 
-                if (setup.datasets[0].input != undefined) {
+                setup.datasets = setup.datasets ?? [];
+                if (setup.datasets[0]?.input != undefined) {
                     for (entry of setup.datasets[0].input.reverse().entries()) {
                         try {
                             state.input.push(parseItem(entry[1]));
@@ -511,10 +513,10 @@
                     }
                 }
 
-                if (setup.datasets[0].output != undefined) {
+                if (setup.datasets[0]?.output != undefined) {
                     this.hrmMachine.output = [];
 
-                    for (entry of setup.datasets[0].output.entries()) {
+                    for (entry of setup.datasets[0]?.output.entries()) {
                         try {
                             this.hrmMachine.output.push(parseItem(entry[1]));
                         } catch (e) {
@@ -548,15 +550,20 @@
                 uiSetupText.append(`<h2>${(setup.title == undefined) ? setup.filename : setup.title}</h2>`);
 
                 switch (typeof(setup.description)) {
+                    case 'undefined':
+                    case 'null': {
+                        // nothing to do
+                    } break;
+
                     case 'string': {
                         uiSetupText.append(`<p>${setup.description}</p>`);
                     } break;
 
-                    case 'array': {
+                    default: {
                         for (description of setup.description) {
                             uiSetupText.append(`<p>${description}</p>`);
                         }
-                    } break;
+                    }
                 }
 
                 uiSetupText[0].removeAttribute("hidden");
@@ -722,7 +729,7 @@
                     let expected = this.hrmMachine.output[entry[0]];
                     let actual = entry[1];
                     if (actual != expected) {
-                        logMessage(`Bad outbox! Management expected ${expected}, but you outboxed ${actual}.`);
+                        state.error = `Bad outbox! Management expected ${expected}, but you outboxed ${actual}.`;
                         return false;
                     }
                 }
@@ -1031,7 +1038,6 @@
                     return false;
                 }
 
-                hrmValidateOutput(nextState);
                 return true;
             }
 
@@ -1139,6 +1145,8 @@
                             state.output.push(value);
                             state.register_changed = true;
                             state.output_changed = true;
+
+                            hrmValidateOutput(state);
                         }
                     } break;
 

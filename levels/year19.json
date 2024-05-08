@@ -2,7 +2,7 @@
 	"title": "Year 19: Countdown",
 	"description": [
 		"For each number in the INBOX, send that number to the OUTBOX, followed by all numbers down to (or up to) zero. It's a countdown!",
-		"The BUMP+ and BUMP- add ONE or subtract ONE from an item in Memory, respectively. The result is put back in Register, and for your convenience, also written back to the floor. BUMP!"
+		"The BUMP+ and BUMP- add ONE or subtract ONE from a tile, respectively. The result is picked back up, and for your convenience, also written back to the floor. BUMP!"
 	],
 	"challenges": {
 		"size": 10,

@@ -1,0 +1,18 @@
+{
+	"title": "Year 31: String Reverse",
+	"description": "For each zero terminated string in the INBOX, reverse it and put the result in the OUTBOX. Repeat!",
+	"challenges": {
+		"size": 11,
+		"speed": 122
+	},
+	"memory" : {
+		"size": 15,
+		"contents": {"14": 0}
+	},
+	"datasets": [
+		{
+			"input": ["I", "T", 0, "Y", "O", "U", 0, "N", "O", "W", 0],
+			"output": ["T", "I", "U", "O", "Y", "W", "O", "N"]
+		}
+	]
+}

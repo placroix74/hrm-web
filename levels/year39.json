@@ -1,0 +1,21 @@
+{
+	"title": "Year 39: Re-Coordinator",
+	"description": [
+		"Each number in the INBOX is an address of a tile on a 4 x 4 floor. Send to the OUTBOX the coordinates of that tile, column first, row second.",
+		"For example, an address of 1 has coordinates 1, 0; an address of 6 has coordinates 2, 1; an address of 11 has coordinates 3, 2."
+	],
+	"challenges": {
+		"size": 14,
+		"speed": 76
+	},
+	"memory" : {
+		"size": 16,
+		"contents": {"14": 0, "15": 4}
+	},
+	"datasets": [
+		{
+			"input": [15, 2, 4, 6],
+			"output": [3, 3, 2, 0, 0, 1, 2, 1]
+		}
+	]
+}

@@ -1,0 +1,18 @@
+{
+	"title": "Year 32: Inventory Report",
+	"description": "For each thing in the INBOX, send to the OUTBOX the total number of matching items on the FLOOR.",
+	"challenges": {
+		"size": 16,
+		"speed": 393
+	},
+	"memory" : {
+		"size": 20,
+		"contents": ["B", "A", "X", "B", "C", "X", "A", "B", "A", "X", "C", "B", "A", "B", 0]
+	},
+	"datasets": [
+		{
+			"input": ["B", "A", "X", "C"],
+			"output": [5, 4, 3, 2]
+		}
+	]
+}

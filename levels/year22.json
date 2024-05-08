@@ -1,0 +1,21 @@
+{
+	"title": "Year 22: Fibonacci Visitor",
+	"description": [
+		"For each thing in the INBOX, send to the OUTBOX the full Fibonacci Sequence up to, but not exceeding that value. For example, if INBOX is 10, OUTBOX should be 1 1 2 3 5 8. What's a Fibonacci Sequence? Ask your boss, or a friendly search box.",
+		"1 1 2 3 5 8 13 21 34 55 89 …"
+	],
+	"challenges": {
+		"size": 19,
+		"speed": 156
+	},
+	"memory" : {
+		"size": 10,
+		"contents": {"9": 0}
+	},
+	"datasets": [
+		{
+			"input": [20, 8],
+			"output": [1, 1, 2, 3, 5, 8, 13, 1, 1, 2, 3, 5, 8]
+		}
+	]
+}

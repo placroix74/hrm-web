@@ -1,0 +1,18 @@
+{
+	"title": "Year 35: Vowel Incinerator",
+	"description": "Send everything from the INBOX to the OUTBOX, except for vowels.",
+	"challenges": {
+		"size": 13,
+		"speed": 323
+	},
+	"memory" : {
+		"size": 10,
+		"contents": ["A", "E", "I", "O", "U", 0]
+	},
+	"datasets": [
+		{
+			"input": ["I", "T", "F", "A", "C", "E", "F", "I", "S", "H"],
+			"output": ["T", "F", "C", "F", "S", "H"]
+		}
+	]
+}

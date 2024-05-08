@@ -1,0 +1,21 @@
+{
+	"title": "Year 29: Storage Floor",
+	"description": [
+		"Imagine each thing in the INBOX is an address. And each address refers to a tile 0-9 on the floor. Your task: For each address in the INBOX, pick up the letter at that address and OUTBOX it.",
+		"Congratulations! You can now access tiles on the floor INDIRECTLY! Observe this example to see how it works, compared to what you've been doing so far:"
+	],
+	"challenges": {
+		"size": 5,
+		"speed": 25
+	},
+	"memory" : {
+		"size": 15,
+		"contents": ["N", "K", "A", "E", "R", "D", "O", "L", "Y", "J", "", "", 8]
+	},
+	"datasets": [
+		{
+			"input": [2, 7, 8, 1, 9],
+			"output": ["A", "L", "Y", "K", "J"]
+		}
+	]
+}
