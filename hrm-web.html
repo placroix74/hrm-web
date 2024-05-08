@@ -454,7 +454,7 @@
                 }
 
                 if (setup.datasets[0]?.input != undefined) {
-                    for (entry of setup.datasets[0].input.reverse().entries()) {
+                    for (entry of setup.datasets[0].input.toReversed().entries()) {
                         try {
                             state.input.push(parseItem(entry[1]));
                         } catch (e) {
@@ -927,6 +927,11 @@
                     this.hrmMachine.program.pop();
                 }
 
+                if (this.hrmMachine.program.length == 0) {
+                    logMessage("No program");
+                    return false;
+                }
+
                 // program length
                 for (item of this.hrmMachine.program) {
                     if (item[0] == "NOP")
@@ -987,12 +992,6 @@
                 }
 
                 let instruction = this.hrmMachine.program[state.next];
-                if (instruction == undefined) {
-                    logMessage("End of program reached");
-                    hrmValidateFinalOutput(state);
-                    return false;
-                }
-
                 let nextState = cloneState(state);
                 hrmExec(nextState, instruction);
                 if (nextState.error) {
@@ -1207,8 +1206,16 @@
 
                 if (state.error != null) {
                     logMessage(state.error, state.next);
-                } else if (operation != "NOP") {
-                    ++state.count;
+                } else {
+                    if (operation != "NOP") {
+                        ++state.count;
+                    }
+
+                    if (state.next == this.hrmMachine.program.length) {
+                        logMessage("End of program reached");
+                        state.halted = true;
+                        return false;
+                    }
                 }
 
                 return state;
