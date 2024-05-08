@@ -4,9 +4,6 @@ An interactive, browser-based [Human Resource Machine](https://tomorrowcorporati
 ## Why?
 The game did not come with [a level editor](https://steamcommunity.com/app/375820/discussions/0/351659808488235380/).
 
-## Prior Art
-- https://github.com/ymizushi/hrm-js : non-interactive(?), Node.js-based
-
 ## Features
 - Everything on _one page_ : software and help text.
 - Levels load from a JSON file.
@@ -19,7 +16,10 @@ The game did not come with [a level editor](https://steamcommunity.com/app/37582
    ```
    python -m http.server
    ```
-1) Open a browser to `locahost:<port>`, e.g.: Python `http.server`'s default port is 8000.
+   and open a browser to `locahost:<port>`, e.g.: Python `http.server`'s default port is 8000;
+   _or_...
+1) Open `hrm-web.html` in a browser directly; note that level data will not be available.
+
 
 ## Tech
 - HTML/CSS
