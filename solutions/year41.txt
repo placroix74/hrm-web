@@ -1,42 +1,42 @@
-tile 20 cnt
-tile 21 cmp
-tile 22 swap
-tile 23 input
-tile 24 zero
+define label 20 cnt
+define label 21 cmp
+define label 22 swap
+define label 23 input
+define label 24 zero
 in:
-from zero
-to cnt
-in
-to [cnt]
-inc cnt
+copyfrom zero
+copyto cnt
+inbox
+copyto [cnt]
+bumpup cnt
 loop:
-in
-jz out
-to input
+inbox
+jumpz out
+copyto input
 sort:
-from cnt
-to swap
-to cmp
-dec cmp
+copyfrom cnt
+copyto swap
+copyto cmp
+bumpdn cmp
 compare:
-from input
+copyfrom input
 sub [cmp]
-jlz insert
+jumpn insert
 swap:
-from [cmp]
-to [swap]
-dec swap
-dec cmp
-jlz insert
-jmp compare
+copyfrom [cmp]
+copyto [swap]
+bumpdn swap
+bumpdn cmp
+jumpn insert
+jump compare
 insert:
-from input
-to [swap]
-inc cnt
-jmp loop
+copyfrom input
+copyto [swap]
+bumpup cnt
+jump loop
 out:
-dec cnt
-jlz in
-from [cnt]
-out
+bumpdn cnt
+jumpn in
+copyfrom [cnt]
+outbox
 jump out
