@@ -15,6 +15,14 @@
             .list {
                 width: 10em;
             }
+            .control-bar {
+                display: flex;
+                align-items: center;
+            }
+            .control {
+                width: 5em;
+                margin-right: .5em;
+            }
             .code {
                 width: 100%;
                 text-wrap: nowrap;
@@ -94,14 +102,14 @@
                     </td>
                 </tr>
             </table>
-            <br />
-            <button id="step-back" disabled>Step Back</button>
-            <button id="run" disabled>Run</button>
-            <button id="stop" disabled hidden>Stop</button>
-            <button id="step" disabled>Step Fwd</button>
-            <button id="reset" disabled>Reset</button>
-            <label for="speed">Speed: </label>
-            <input id="speed" name="speed" type="range" min="0" max="1000" />
+            <div class="control-bar">
+                <button id="reset" class="control" disabled>Stop</button>
+                <button id="step-back" class="control" disabled>&lt; Step</button>
+                <button id="run" class="control" disabled>Run &gt;&gt;</button>
+                <button id="step" class="control" disabled>Step &gt;</button>
+                <label for="speed">Speed: </label>
+                <input id="speed" name="speed" type="range" min="0" max="1000" />
+            </div>
         </div>
         <div id="messages">
             Messages:<br />
@@ -114,13 +122,13 @@
                 <li>Type/Paste your code into the "Program" text area</li>
                 <li>Execute your program:</li>
                 <ul>
-                    <li>To launch the program, press the "Run" button</li>
+                    <li>To launch the program, press the "Run &gt;&gt;" button</li>
                     <ul>
-                        <li>To break execution of the program, press the "Stop" button</li>
+                        <li>To break execution of the program, press any "Step" button</li>
                     </ul>
-                    <li>To execute your program one command at a time, press the "Step Fwd" button</li>
-                    <li>To roll back a command (once execution has begun), press the "Step Back" button</li>
-                    <li>To restart execution from the beginning, press the "Reset" button</li>
+                    <li>To execute your program one command at a time, press the "Step &gt;" button</li>
+                    <li>To roll back a command (once execution has begun), press the "&lt; Step" button</li>
+                    <li>To end execution and edit the program again, press the "Stop" button</li>
                 </ul>
                 <li>Execution of the program stops automatically if:</li>
                 <ul>
@@ -255,9 +263,13 @@
         </div>
         <script>
             $(document).ready(function() {
+                window.hrmTimeoutID = null;
+                window.hrmMachine = null;
+                window.hrmCustomLevel = null;
+                window.hrmLevels = [];
+                window.programChanged = false;
+
                 onLoad = function(data) {
-                    window.hrmMachine = null;
-                    window.hrmCustomLevel = null;
                     window.hrmLevels = data;
 
                     // populate dropdown
@@ -336,52 +348,56 @@
             });
 
             $("#program").on("keyup", function (e) {
-                if (window.hrmMachine != undefined && !$("#program")[0].hasAttribute("readonly")) {
-                    window.hrmMachine.programChanged = true;
+                if (!$("#program")[0].hasAttribute("readonly")) {
+                    window.programChanged = true;
                 }
             });
 
             $("#message-list").on("change", function (e) {
                 let uiMessages = $("#message-list")[0];
-                let value = uiMessages.value;
+                let value = Number.parseInt(uiMessages.value);
 
                 uiMessages.selectedIndex = -1;
 
-                if (value != "undefined") {
+                if (!Number.isNaN(value)) {
                     selectProgramLine(value);
                 }
             });
 
             $(":button").click(function (e) {
-                if (window.hrmMachine.programChanged) {
-                    hrmResetState(window.hrmMachine);
-
+                if (!window.hrmMachine.run && window.programChanged) {
                     if (!hrmCompile(window.hrmMachine, $("#program")[0].value)) {
                         return;
                     }
-
-                    window.hrmMachine.programChanged = false;
+                    window.programChanged = false;
                 }
 
                 switch (e.target.id) {
-                    case "step": {
-                        if (!hrmStep(window.hrmMachine)) {
-                            hrmLogMachineErrors(window.hrmMachine);
-                            hrmValidateFinalOutput(window.hrmMachine);
-                        }
+                    case "reset": {
+                        breakExecution();
+                        window.hrmMachine.run = false;
+                        hrmResetState(window.hrmMachine);
                     } break;
 
                     case "step-back": {
+                        window.hrmMachine.run = "manual";
+                        if (breakExecution()) {
+                            break;
+                        }
                         hrmStepBack(window.hrmMachine);
                     } break;
 
                     case "run": {
+                        if (window.hrmTimeoutID != null) {
+                            return;  // already running
+                        }
+
                         oneStep = function() {
                             if (hrmStep(window.hrmMachine)) {
-                                let delay = 1000 - $("#speed")[0].value;
-                                window.hrmMachine.timeoutID = setTimeout(oneStep, delay);
+                                // next step
+                                window.hrmMachine.run = "auto";
+                                window.hrmTimeoutID = setTimeout(oneStep, getStepDelay());
                             } else {
-                                hrmStop(window.hrmMachine);
                                 hrmLogMachineErrors(window.hrmMachine);
                                 hrmValidateFinalOutput(window.hrmMachine);
                             }
@@ -390,24 +406,38 @@
                             updateUi(window.hrmMachine);
                         };
 
-                        $("#program")[0].setAttribute("readonly", "");
-
-                        let delay = 1000 - $("#speed")[0].value;
-                        window.hrmMachine.timeoutID = setTimeout(oneStep, delay);
+                        oneStep();
                     } break;
 
-                    case "stop": {
-                        hrmStop(window.hrmMachine);
-                    } break;
-
-                    case "reset": {
-                        hrmResetState(window.hrmMachine);
+                    case "step": {
+                        window.hrmMachine.run = "manual";
+                        if (breakExecution()) {
+                            break;
+                        }
+                        if (!hrmStep(window.hrmMachine)) {
+                            hrmLogMachineErrors(window.hrmMachine);
+                            hrmValidateFinalOutput(window.hrmMachine);
+                        }
                     } break;
                 }
 
                 hrmRender(window.hrmMachine);
                 updateUi(window.hrmMachine);
             });
+
+            function breakExecution() {
+                if (window.hrmTimeoutID == null) {
+                    return false;
+                }
+
+                clearTimeout(window.hrmTimeoutID);
+                window.hrmTimeoutID = null;
+                return true;
+            }
+
+            function getStepDelay() {
+                return 1000 - $("#speed")[0].value;
+            }
 
             function clone(object) {
                 return JSON.parse(JSON.stringify(object));
@@ -420,38 +450,44 @@
 
             function logMessage(text, value) {
                 let uiMessages = $("#message-list");
-                let html = `<option value=${value}>${text}</option>`;
+                let isValid = Number.isInteger(value);
+                let html = `<option value="${value}">${isValid ? `Line ${value + 1}: ` : ''}${text}</option>`;
                 uiMessages.append(html);
             }
 
             function updateUi(machine) {
                 if (machine == null) {
+                    $("#reset")[0].setAttribute("disabled", "");
                     $("#step-back")[0].setAttribute("disabled", "");
                     $("#run")[0].setAttribute("disabled", "");
-                    $("#stop")[0].setAttribute("disabled", "");
                     $("#step")[0].setAttribute("disabled", "");
-                    $("#reset")[0].setAttribute("disabled", "");
-                } else {
-                    $("#run")[0].removeAttribute("disabled");
-                    $("#stop")[0].removeAttribute("disabled");
 
-                    if (machine.timeoutID != null) {
-                        $("#step-back")[0].setAttribute("disabled", "");
-                        $("#run")[0].setAttribute("hidden", "");
-                        $("#stop")[0].removeAttribute("hidden");
-                        $("#step")[0].setAttribute("disabled", "");
+                    $("#program")[0].removeAttribute("readonly");
+                } else {
+                    $("#step")[0].removeAttribute("disabled");
+
+                    if (machine.run === false) {
                         $("#reset")[0].setAttribute("disabled", "");
+                        $("#step-back")[0].setAttribute("disabled", "");
+                        $("#run")[0].removeAttribute("disabled");
+
+                        $("#program")[0].removeAttribute("readonly");
                     } else {
+                        $("#reset")[0].removeAttribute("disabled");
+
                         if (machine.states.length > 1) {
                             $("#step-back")[0].removeAttribute("disabled");
                         } else {
                             $("#step-back")[0].setAttribute("disabled", "");
-                                                    }
+                        }
 
-                        $("#run")[0].removeAttribute("hidden");
-                        $("#stop")[0].setAttribute("hidden", "");
-                        $("#step")[0].removeAttribute("disabled");
-                        $("#reset")[0].removeAttribute("disabled");
+                        if (machine.run == "auto") {
+                            $("#run")[0].setAttribute("disabled", "");
+                        } else {
+                            $("#run")[0].removeAttribute("disabled");
+                        }
+
+                        $("#program")[0].setAttribute("readonly", "");
                     }
                 }
             }
@@ -497,14 +533,13 @@
                 // initialize machine
 
                 let machine = {
+                    run: false,
                     states: [],
                     program: [],
                     programLines: [],
                     programLength: 0,
-                    programChanged: true,
                     constants: [],
                     output: null,
-                    timeoutID: null,
                     level: setup,
                     currentExample: null,
                     errors: []
@@ -728,7 +763,11 @@
 
             function hrmLogMachineErrors(machine) {
                 for (error of machine.errors) {
-                    logMessage(error);
+                    if (typeof(error) == 'string') {
+                        logMessage(error);
+                    } else {
+                        logMessage(error[0], error[1]);
+                    }
                 }
                 machine.errors = [];
             }
@@ -1034,15 +1073,6 @@
                 machine.states = machine.states.slice(0, 1);
             }
 
-            function hrmStop(machine) {
-                if (machine.timeoutID != null) {
-                    clearTimeout(machine.timeoutID);
-                }
-
-                machine.timeoutID = null;
-                $("#program")[0].removeAttribute("readonly");
-            }
-
             function hrmStepBack(machine) {
                 if (machine.states.length <= 1) {
                     return;
@@ -1052,7 +1082,6 @@
 
                 machine.states.pop();
             }
-
 
             function hrmStep(machine) {
                 clearMessages();
@@ -1067,7 +1096,7 @@
                 hrmExec(machine, nextState, instruction);
                 
                 if (nextState.error) {
-                    machine.errors.push(nextState.error);
+                    machine.errors.push([nextState.error, nextState.next]);
                     return false;
                 }
 
