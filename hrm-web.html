@@ -751,16 +751,15 @@
             }
 
             function hrmValidateFinalOutput(machine) {
-                if (machine == undefined) {
-                    return true;
-                }
                 if (machine.output == null) {
+                    // nothing to check
                     return true;
                 }
 
                 let state = hrmGetLastState(machine);
-                if (!hrmValidateOutput(machine, state)) {
-                    return false;
+                if (!state.halted) {
+                    // it's not time yet
+                    return true;
                 }
 
                 let expected = machine.output.length;
@@ -771,6 +770,7 @@
                 }
 
                 // validate against other examples
+
                 let failedExample = null;
                 let examples = machine.level.examples ?? [];
                 for (entry of examples.entries()) {
@@ -800,8 +800,9 @@
                     return false;
                 }
 
-                logMessage(`Congratulations!`);
+                // we're done
 
+                logMessage(`Congratulations!`);
                 let challenge = machine.level.challenge ?? {};
                 if (challenge.size != undefined) {
                     logMessage(`Size Challenge: use ${challenge.size} or fewer commands. Your current solution uses ${machine.programLength} commands`);
@@ -1080,14 +1081,25 @@
             }
 
             function hrmGetRegister(state, operation) {
+                if (state.error != null) {
+                    // already an error
+                    return null;
+                }
+
                 let value = state.register;
                 if (value == null) {
                     state.error = `Empty value! You can't ${operation} with empty hands!`;
                 }
+
                 return value;
             }
 
             function hrmGetMemory(state, slot, operation) {
+                if (state.error != null) {
+                    // already an error
+                    return null;
+                }
+
                 if (0 > slot || slot >= state.memory.length) {
                     state.error = `Bad tile address! Tile with address ${slot} doesn't even exist! Where do you think you're going?`;
                     return null;
@@ -1097,12 +1109,21 @@
                 if (value == null) {
                     state.error = `Empty value! You can't ${operation} with an empty tile! Try writing something to that tile first.`;
                 }
+
                 return value;
             }
 
             function hrmValidateOperation(state, operation, operand1, operand2) {
+                if (state.error != null) {
+                    // already an error
+                    return false;
+                }
+
                 switch (operation) {
                     case "SUB": {
+                        if (typeof(operand1) != typeof(operand2)) {
+                            state.error = `You can't SUB with mixed operands! SUB'ing between one letter and one number is invalid. Only nice respectable pairs of two letters or two numbers allowed.`;
+                        }
                         if (typeof(operand1) != typeof(operand2)) {
                             state.error = `You can't SUB with mixed operands! SUB'ing between one letter and one number is invalid. Only nice respectable pairs of two letters or two numbers allowed.`;
                         }
@@ -1175,7 +1196,7 @@
 
                     case "OUTBOX": {
                         let value = hrmGetRegister(state, operation);
-                        if (value != null) {
+                        if (hrmValidateOperation(state, operation, value)) {
                             state.output.push(value);
                             state.register_changed = true;
                             state.output_changed = true;
@@ -1186,7 +1207,7 @@
 
                     case "COPYFROM": {
                         let value = hrmGetMemory(state, instruction[1], operation);
-                        if (value != null) {
+                        if (hrmValidateOperation(state, operation, value)) {
                             state.register = value;
                             state.register_changed = true;
                             state.memory_changed = instruction[1];
@@ -1195,7 +1216,7 @@
 
                     case "COPYTO": {
                         let value = hrmGetRegister(state, operation);
-                        if (value != null) {
+                        if (hrmValidateOperation(state, operation, value)) {
                             state.memory[instruction[1]] = value;
                             state.register_changed = true;
                             state.memory_changed = instruction[1];
@@ -1204,32 +1225,28 @@
 
                     case "ADD": {
                         let operand1 = hrmGetRegister(state, operation);
-                        if (operand1 != null) {
-                            operand2 = hrmGetMemory(state, instruction[1], operation);
-                            if (operand1 != null && hrmValidateOperation(state, operation, operand1, operand2)) {
-                                state.register = operand1 + operand2;
-                                state.register_changed = true;
-                                state.memory_changed = instruction[1];
-                            }
+                        let operand2 = hrmGetMemory(state, instruction[1], operation);
+                        if (hrmValidateOperation(state, operation, operand1, operand2)) {
+                            state.register = operand1 + operand2;
+                            state.register_changed = true;
+                            state.memory_changed = instruction[1];
                         }
                     } break;
 
                     case "SUB": {
                         let operand1 = hrmGetRegister(state, operation);
-                        if (operand1 != null) {
-                            operand2 = hrmGetMemory(state, instruction[1]);
-                            if (operand1 != null && hrmValidateOperation(state, operation, operand1, operand2)) {
-                                state.register = (Number.isInteger(operand1)) ?
-                                    operand1 - operand2 : operand1.charCodeAt(0) - operand2.charCodeAt(0);
-                                state.register_changed = true;
-                                state.memory_changed = instruction[1];
-                            }
+                        let operand2 = hrmGetMemory(state, instruction[1], operation);
+                        if (hrmValidateOperation(state, operation, operand1, operand2)) {
+                            state.register = (Number.isInteger(operand1)) ?
+                                operand1 - operand2 : operand1.charCodeAt(0) - operand2.charCodeAt(0);
+                            state.register_changed = true;
+                            state.memory_changed = instruction[1];
                         }
                     } break;
 
                     case "BUMP+": {
                         value = hrmGetMemory(state, instruction[1], operation);
-                        if (value != null && hrmValidateOperation(state, operation, value)) {
+                        if (hrmValidateOperation(state, operation, value)) {
                             state.register = state.memory[instruction[1]] = value + 1;
                             state.register_changed = true;
                             state.memory_changed = instruction[1];
@@ -1238,7 +1255,7 @@
 
                     case "BUMP-": {
                         value = hrmGetMemory(state, instruction[1], operation);
-                        if (value != null && hrmValidateOperation(state, operation, value)) {
+                        if (hrmValidateOperation(state, operation, value)) {
                             state.register = state.memory[instruction[1]] = value - 1;
                             state.register_changed = true;
                             state.memory_changed = instruction[1];
@@ -1255,14 +1272,14 @@
 
                     case "JUMP IF ZERO": {
                         let value = hrmGetRegister(state);
-                        if (value != null) {
+                        if (hrmValidateOperation(state, operation, value)) {
                             state.next = (Number.isInteger(value) && value == 0) ? instruction[1] : state.next + 1;
                         }
                     } break;
 
                     case "JUMP IF NEGATIVE": {
                         let value = hrmGetRegister(state);
-                        if (value != null) {
+                        if (hrmValidateOperation(state, operation, value)) {
                             state.next = (Number.isInteger(value) && value < 0) ? instruction[1] : state.next + 1;
                         }
                     } break;
