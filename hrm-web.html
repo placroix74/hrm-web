@@ -108,7 +108,7 @@
                 <button id="run" class="control" disabled>Run &gt;&gt;</button>
                 <button id="step" class="control" disabled>Step &gt;</button>
                 <label for="speed">Speed: </label>
-                <input id="speed" name="speed" type="range" min="0" max="1000" />
+                <input id="speed" name="speed" type="range" min="0" max="5" value="0"/>
             </div>
         </div>
         <div id="messages">
@@ -436,7 +436,9 @@
             }
 
             function getStepDelay() {
-                return 1000 - $("#speed")[0].value;
+                let delays = [1200, 800, 400, 200, 100, 5]
+                let value = $("#speed")[0].value;
+                return delays[value];
             }
 
             function clone(object) {
