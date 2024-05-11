@@ -1,0 +1,22 @@
+{
+    "name": "Base Converte",
+    "instructions": "For each two things in the INBOX, convert the first from base 10 to the base specified by the second, and put the result in the OUTBOX. Repeat.",
+    "commands": [ "INBOX", "OUTBOX", "COPYFROM", "COPYTO", "ADD", "SUB", "BUMPUP", "BUMPDN", "JUMP", "JUMPZ", "JUMPN" ],
+    "dereferencing": true,
+    "comments": true,
+    "labels": true,
+    "floor": {
+        "columns": 4,
+        "rows": 4,
+        "tiles": {
+            "14": 0,
+            "15": 10
+        }
+    },
+    "examples": [
+        {
+            "inbox": [ 87, 6, 0, 4, 23, 3, 64, 8 ],
+            "outbox": [ 223, 0, 212, 100 ]
+        }
+    ]
+}
