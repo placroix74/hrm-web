@@ -873,8 +873,8 @@
                     lineStart += line.length + 1;
 
                     line = line
-                        .replace(/\s+/g, '')  // remove all whitespace
-                        .replace(/--.*$/g, '');  // remove comment
+                        .replace(/--.*$/g, '')  // remove comment
+                        .trim();  // remove all whitespace
 
                     if (line == '') {
                         machine.program.push(["NOP"]);
@@ -883,7 +883,7 @@
 
                     let result = null;
 
-                    result = line.matchAll(/^DEFINELABEL(\d+)([A-Z_\-]+)$/gi).next();
+                    result = line.matchAll(/^DEFINE\s+LABEL\s+(\d+)\s+([A-Z_\-]+)$/gi).next();
                     if (!result.done) {
                         let address = result.value[1];
                         let name = result.value[2];
@@ -912,7 +912,7 @@
                         continue;
                     }
 
-                    result = line.matchAll(/^COPYFROM(\[(\d+|[A-Z_\-]+)\]|(\d+|[A-Z_\-]+))$/gi).next();
+                    result = line.matchAll(/^COPYFROM\s+(\[(\d+|[A-Z_\-]+)\]|(\d+|[A-Z_\-]+))$/gi).next();
                     if (!result.done) {
                         machine.program.push((result.value[2] == undefined) ?
                             ["COPYFROM", result.value[3]] : ["pCOPYFROM", result.value[2]]
@@ -920,7 +920,7 @@
                         continue;
                     }
 
-                    result = line.matchAll(/^COPYTO(\[(\d+|[A-Z_\-]+)\]|(\d+|[A-Z_\-]+))$/gi).next();
+                    result = line.matchAll(/^COPYTO\s+(\[(\d+|[A-Z_\-]+)\]|(\d+|[A-Z_\-]+))$/gi).next();
                     if (!result.done) {
                         machine.program.push((result.value[2] == undefined) ?
                             ["COPYTO", result.value[3]] : ["pCOPYTO", result.value[2]]
@@ -928,7 +928,7 @@
                         continue;
                     }
 
-                    result = line.matchAll(/^ADD(\[(\d+|[A-Z_\-]+)\]|(\d+|[A-Z_\-]+))$/gi).next();
+                    result = line.matchAll(/^ADD\s+(\[(\d+|[A-Z_\-]+)\]|(\d+|[A-Z_\-]+))$/gi).next();
                     if (!result.done) {
                         machine.program.push((result.value[2] == undefined) ?
                             ["ADD", result.value[3]] : ["pADD", result.value[2]]
@@ -936,7 +936,7 @@
                         continue;
                     }
 
-                    result = line.matchAll(/^SUB(\[(\d+|[A-Z_\-]+)\]|(\d+|[A-Z_\-]+))$/gi).next();
+                    result = line.matchAll(/^SUB\s+(\[(\d+|[A-Z_\-]+)\]|(\d+|[A-Z_\-]+))$/gi).next();
                     if (!result.done) {
                         machine.program.push((result.value[2] == undefined) ?
                             ["SUB", result.value[3]] : ["pSUB", result.value[2]]
@@ -944,25 +944,25 @@
                         continue;
                     }
 
-                    result = line.matchAll(/^JUMPN([A-Z_\-]+)$/gi).next();
+                    result = line.matchAll(/^JUMPN\s+([A-Z_\-]+)$/gi).next();
                     if (!result.done) {
                         machine.program.push(["JUMP IF NEGATIVE", result.value[1]]);
                         continue;
                     }
 
-                    result = line.matchAll(/^JUMPZ([A-Z_\-]+)$/gi).next();
+                    result = line.matchAll(/^JUMPZ\s+([A-Z_\-]+)$/gi).next();
                     if (!result.done) {
                         machine.program.push(["JUMP IF ZERO", result.value[1]]);
                         continue;
                     }
 
-                    result = line.matchAll(/^JUMP([A-Z_\-]+)$/gi).next();
+                    result = line.matchAll(/^JUMP\s+([A-Z_\-]+)$/gi).next();
                     if (!result.done) {
                         machine.program.push(["JUMP", result.value[1]]);
                         continue;
                     }
 
-                    result = line.matchAll(/^BUMPUP(\[(\d+|[A-Z_\-]+)\]|(\d+|[A-Z_\-]+))$/gi).next();
+                    result = line.matchAll(/^BUMPUP\s+(\[(\d+|[A-Z_\-]+)\]|(\d+|[A-Z_\-]+))$/gi).next();
                     if (!result.done) {
                         machine.program.push((result.value[2] == undefined) ?
                             ["BUMP+", result.value[3]] : ["pBUMP+", result.value[2]]
@@ -970,7 +970,7 @@
                         continue;
                     }
 
-                    result = line.matchAll(/^BUMPDN(\[(\d+|[A-Z_\-]+)\]|(\d+|[A-Z_\-]+))$/gi).next();
+                    result = line.matchAll(/^BUMPDN\s+(\[(\d+|[A-Z_\-]+)\]|(\d+|[A-Z_\-]+))$/gi).next();
                     if (!result.done) {
                         machine.program.push((result.value[2] == undefined) ?
                             ["BUMP-", result.value[3]] : ["pBUMP-", result.value[2]]
