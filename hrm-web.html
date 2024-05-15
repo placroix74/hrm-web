@@ -108,7 +108,7 @@
                 <button id="run" class="control" disabled>Run &gt;&gt;</button>
                 <button id="step" class="control" disabled>Step &gt;</button>
                 <label for="speed">Speed: </label>
-                <input id="speed" name="speed" type="range" min="0" max="5" value="0"/>
+                <input id="speed" name="speed" type="range" min="0" max="10" value="0"/>
             </div>
         </div>
         <div id="messages">
@@ -478,9 +478,10 @@
             }
 
             function getStepDelay() {
-                let delays = [1200, 800, 400, 200, 100, 5]
                 let value = $("#speed")[0].value;
-                return delays[value];
+                // 1.584 is approx. the 10th root of 100, i.e. max. speed is 100x faster than min. speed
+                let delay = Math.trunc(1200 / (1.584 ** value));
+                return delay;
             }
 
             function clone(object) {
@@ -891,7 +892,7 @@
                     logMessage(`Size Challenge: use ${challenge.size} or fewer commands. Your current solution uses ${machine.programLength} commands`);
                 }
                 if (challenge.speed != undefined) {
-                    logMessage(`Speed Challenge: complete in ${machine.challenges.speed} or fewer steps. Your current solution completes in ${state.count} steps`);
+                    logMessage(`Speed Challenge: complete in ${challenge.speed} or fewer steps. Your current solution completes in ${state.count} steps`);
                 }
 
                 return true;
