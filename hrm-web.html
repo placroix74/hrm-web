@@ -347,11 +347,53 @@
                 reader.readAsText(uiSetupFile.files[0]);
             });
 
-            $("#program").on("keyup", function (e) {
-                if (!$("#program")[0].hasAttribute("readonly")) {
+            ////////////////////////////////////////
+            // https://stackoverflow.com/questions/56329625
+
+            let prevScrollPos = 0;
+            let scrollCorrection = false;
+
+            $("#program").on("keydown", function (e) {
+                let uiProgram = $("#program")[0];
+                //console.log(`program : keydown : top = ${uiProgram.scrollTop}`);
+
+                prevScrollPos = uiProgram.scrollTop;
+            });
+
+            $("#program").on("scroll", function (e) {
+                let uiProgram = $("#program")[0];
+                //console.log(`program : scroll : top = ${uiProgram.scrollTop}`);
+
+                if (scrollCorrection) {
+                    uiProgram.scrollTop = prevScrollPos;
+
+                    // cause caret to scroll back into view, if applicable
+                    uiProgram.blur();
+                    uiProgram.focus();
+
+                    scrollCorrection = false;
+                }
+            });
+
+            ////////////////////////////////////////
+
+            $("#program").on("input", function (e) {
+                let uiProgram = $("#program")[0];
+
+                ////////////////////////////////////////
+                // https://stackoverflow.com/questions/56329625
+
+                //console.log(`program : input : top = ${uiProgram.scrollTop}`);
+                scrollCorrection = true;
+
+                ////////////////////////////////////////
+
+                if (!uiProgram.hasAttribute("readonly")) {
                     window.programChanged = true;
                 }
             });
+
+            ////////////////////////////////////////
 
             $("#message-list").on("change", function (e) {
                 let uiMessages = $("#message-list")[0];
