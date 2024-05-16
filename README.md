@@ -1,4 +1,4 @@
-# HRM-WEB
+# Human Resource Machine : The Simulator
 An interactive, browser-based [Human Resource Machine](https://tomorrowcorporation.com/humanresourcemachine) simulator.
 
 ## Why?
