@@ -2,6 +2,26 @@
     <head>
         <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
         <style>
+            @font-face {
+                font-family: Klein-Condensed-ExtraBold;
+                src: url(res/Klein-Condensed-ExtraBold-trial.ttf);
+            }
+            .title {
+                font-family: Klein-Condensed-ExtraBold;
+                font-size: xx-large;
+                font-weight: 700;
+            }
+            .subtitle {
+                font-family: Klein-Condensed-ExtraBold;
+                font-size: x-large;
+                font-weight: 700;
+            }
+            h1, h2, h3, th {
+                font-family: Klein-Condensed-ExtraBold;
+            }
+            #setup-text-block {
+                font-family: Klein-Condensed-ExtraBold;
+            }
             div {
                 margin-top: 1em;
                 margin-bottom: 1em;
@@ -46,17 +66,17 @@
             }
         </style>
     </head>
-    <body style="max-width: 1024px;">
-        <table>
-            <tr><td colspan="3" style="text-align: center;">
-                <h1>Human Resource Machine Simulator</h1>
-            </td></tr>
-            <tr>
-                <td style="text-align: center; width: 33%;"><a href="#instructions">Instructions</a></td>
-                <td style="text-align: center; width: 33%;"><a href="#opcode-reference">Programming Reference</a></td>
-                <td style="text-align: center; width: 33%;"><a href="#setup-instructions">Custom Levels</a></td>
-            </tr>
-        </table>
+    <body style="max-width: 1024px; font-family: sans-serif;">
+        <div style="text-align: center">
+            <span class="title">HUMAN RESOURCE MACHINE</span>
+            <br />
+            <span class="subtitle">The Simulator</span>
+        </div>
+        <div style="display: flex;">
+            <a style="text-align: center; width: 100%;" href="#instructions">Instructions</a>
+            <a style="text-align: center; width: 100%;" href="#opcode-reference">Programming Reference</a>
+            <a style="text-align: center; width: 100%;" href="#setup-instructions">Custom Levels</a>
+        </div>
         <div id="level-selection">
             <label for="levels">Level: </label>
             <select id="levels" name="levels">
@@ -69,15 +89,9 @@
         <div id="machine">
             <table style="width: 100%;">
                 <tr>
-                    <th>
-                        <label for="register">In hand: </label><input name="register" id="register" readonly></input>
-                    </td>
-                    <th>
-                        <label for="count">Execution Steps: </label><input name="count" id="count" readonly></input>
-                    </td>
-                    <th>
-                        <label for="length">Program Size: </label><input name="length" id="length" readonly></input>
-                    </td>
+                    <th><label for="register">In hand: </label><input name="register" id="register" readonly></input></th>
+                    <th><label for="count">Execution Steps: </label><input name="count" id="count" readonly></input></th>
+                    <th><label for="length">Program Size: </label><input name="length" id="length" readonly></input></th>
                 </tr>
             </table>
             <table style="width: 100%;">
@@ -88,18 +102,10 @@
                     <th>Program</th>
                 </tr>
                 <tr>
-                    <td style="width: 0%;">
-                        <select id="input" class="list" size="25"></select>
-                    </td>
-                    <td style="width: 0%;">
-                        <select id="memory" class="list" size="25"></select>
-                    </td>
-                    <td style="width: 0%;">
-                        <select id="output" class="list" size="25"></select>
-                    </td>
-                    <td>
-                        <textarea id="program" class="code" rows="25" spellcheck="false"></textarea>
-                    </td>
+                    <td style="width: 0%;"><select id="input" class="list" size="25"></select></td>
+                    <td style="width: 0%;"><select id="memory" class="list" size="25"></select></td>
+                    <td style="width: 0%;"><select id="output" class="list" size="25"></select></td>
+                    <td><textarea id="program" class="code" rows="25" spellcheck="false"></textarea></td>
                 </tr>
             </table>
             <div class="control-bar">
@@ -283,7 +289,7 @@
                     }
                 }
 
-                fetch('level-data.json')
+                fetch('res/level-data.json')
                     .then(function(response) {
                         return response.json();
                     })
@@ -557,7 +563,7 @@
             }
 
             function hrmInitUI(machine) {
-                let setup = machine?.setup ?? {};
+                let setup = machine?.level ?? {};
 
                 // Problem text
                 let uiSetupText = $("#setup-text-block");
