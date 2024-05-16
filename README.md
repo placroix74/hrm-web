@@ -14,7 +14,7 @@ The game did not come with [a level editor](https://steamcommunity.com/app/37582
 1) Extract and navigate to the extraction directory.
 1) Launch a basic HTTP server, e.g. if you have Python 3 installed:
    ```
-   python -m http.server
+   python -m http.server [port]
    ```
    and open a browser to `locahost:<port>`, e.g.: Python `http.server`'s default port is 8000;
    _or_...
