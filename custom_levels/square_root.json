@@ -1,0 +1,21 @@
+{
+    "name": "Square Root",
+    "instructions": "For each thing in the INBOX, put the its square root in the OUTBOX. Repeat.",
+    "commands": [ "INBOX", "OUTBOX", "COPYFROM", "COPYTO", "ADD", "SUB", "BUMPUP", "BUMPDN", "JUMP", "JUMPZ", "JUMPN" ],
+    "dereferencing": true,
+    "comments": true,
+    "labels": true,
+    "floor": {
+        "columns": 5,
+        "rows": 5,
+        "tiles": {
+            "24": 0
+        }
+    },
+    "examples": [
+        {
+            "inbox": [ 36, 0, 144, 29241 ],
+            "outbox": [ 6, 0, 12, 171 ]
+        }
+    ]
+}

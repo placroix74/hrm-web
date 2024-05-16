@@ -1,5 +1,5 @@
 {
-    "name": "Base Converte",
+    "name": "Base Converter",
     "instructions": "For each two things in the INBOX, convert the first from base 10 to the base specified by the second, and put the result in the OUTBOX. Repeat.",
     "commands": [ "INBOX", "OUTBOX", "COPYFROM", "COPYTO", "ADD", "SUB", "BUMPUP", "BUMPDN", "JUMP", "JUMPZ", "JUMPN" ],
     "dereferencing": true,
