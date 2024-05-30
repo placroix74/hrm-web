@@ -14,8 +14,7 @@ The game did not come with [a level editor](https://steamcommunity.com/app/37582
 - Levels load from a JSON file.
   - Every level from the original game included. (Is this legal?)
 
-## Live Version
-[https://placroix74.github.io/hrm-web-sim/hrm-web.html]
+## [Live Version](https://placroix74.github.io/hrm-web-sim/hrm-web.html)
 
 ## Installation
 1. [Download the current master](https://github.com/placroix74/hrm-web/archive/refs/heads/master.zip).
