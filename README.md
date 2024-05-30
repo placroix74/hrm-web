@@ -15,18 +15,18 @@ The game did not come with [a level editor](https://steamcommunity.com/app/37582
   - Every level from the original game included. (Is this legal?)
 
 ## Live Version
-https://placroix74.github.io/hrm-web-sim/hrm-web.html
+[https://placroix74.github.io/hrm-web-sim/hrm-web.html]
 
 ## Installation
-1) [Download the current master](https://github.com/placroix74/hrm-web/archive/refs/heads/master.zip).
-2) Extract and navigate to the extraction directory.
-3) Launch a basic HTTP server, e.g. if you have [Python 3](https://www.python.org/downloads/) installed:
+1. [Download the current master](https://github.com/placroix74/hrm-web/archive/refs/heads/master.zip).
+2. Extract and navigate to the extraction directory.
+3. Launch a basic HTTP server, e.g. if you have [Python 3](https://www.python.org/downloads/) installed:
    ```
    python -m http.server [port]
    ```
    and open a browser to `locahost:<port>`, e.g.: Python `http.server`'s default port is 8000;
    _or_...
-4) Open `hrm-web.html` in a browser directly; however, original game levels will not be available.
+4. Open `hrm-web.html` in a browser directly; however, original game levels will not be available.
 
 ## Tech
 - HTML/CSS
