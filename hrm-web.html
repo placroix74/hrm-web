@@ -1,66 +1,98 @@
 <html>
     <head>
         <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Passion+One:wght@400;700;900&display=swap" rel="stylesheet">
         <style>
-            @font-face {
-                font-family: Klein-Condensed-ExtraBold;
-                src: url(res/Klein-Condensed-ExtraBold-trial.ttf);
+            .passion-one-regular {
+                font-family: "Passion One", sans-serif;
+                font-weight: 400;
+                font-style: normal;
             }
+
+            .passion-one-bold {
+                font-family: "Passion One", sans-serif;
+                font-weight: 700;
+                font-style: normal;
+            }
+
+            .passion-one-black {
+                font-family: "Passion One", sans-serif;
+                font-weight: 900;
+                font-style: normal;
+            }
+
             .title {
-                font-family: Klein-Condensed-ExtraBold, sans-serif;
+                font-family: "Passion One", sans-serif;
                 font-size: xx-large;
                 font-weight: 700;
             }
+
             .subtitle {
-                font-family: Klein-Condensed-ExtraBold, sans-serif;
+                font-family: "Passion One", sans-serif;
                 font-size: x-large;
                 font-weight: 700;
             }
+
             h1, h2, h3, th {
-                font-family: Klein-Condensed-ExtraBold, sans-serif;
+                font-family: "Passion One", sans-serif;
             }
+
             #setup-text-block {
-                font-family: Klein-Condensed-ExtraBold, sans-serif;
+                font-family: "Passion One", sans-serif;
             }
+
             div {
                 margin-top: 1em;
                 margin-bottom: 1em;
             }
+
             table {
                 width: 100%;
             }
+
             table, th, td {
-              border:1px solid black;
+                border:1px solid black;
             }
+
             .list {
                 width: 10em;
             }
+
             .control-bar {
                 display: flex;
                 align-items: center;
             }
+
             .control {
                 width: 5em;
                 margin-right: .5em;
             }
+
             .code {
                 width: 100%;
                 text-wrap: nowrap;
             }
+
             .log {
                 width: 30em;
             }
+
             .example {
                 width: 100%;
                 resize: none;
                 overflow: hidden;
             }
+
             [changed] {
                 background-color: lightgray;
             }
+
             [hidden] {
                 display: none;
             }
+
             [success] {
                 background-color: lightgreen;
             }
