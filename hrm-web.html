@@ -23,6 +23,15 @@
                 font-style: normal;
             }
 
+            body {
+                max-width: 1024px;
+                font-family: sans-serif;
+            }
+
+            .title-block {
+                text-align: center;
+            }
+
             .title {
                 font-family: "Passion One", sans-serif;
                 font-size: xx-large;
@@ -41,6 +50,19 @@
 
             #setup-text-block {
                 font-family: "Passion One", sans-serif;
+            }
+
+            #message-list {
+                width: 100%;
+            }
+
+            .toc {
+                display: flex;
+            }
+
+            .toc-item {
+                text-align: center;
+                width: 100%;
             }
 
             div {
@@ -70,19 +92,17 @@
                 margin-right: .5em;
             }
 
-            .code {
+            .list-block {
+                width: 0%
+            }
+
+            .code-block {
                 width: 100%;
                 text-wrap: nowrap;
             }
 
             .log {
                 width: 30em;
-            }
-
-            .example {
-                width: 100%;
-                resize: none;
-                overflow: hidden;
             }
 
             [changed] {
@@ -98,16 +118,16 @@
             }
         </style>
     </head>
-    <body style="max-width: 1024px; font-family: sans-serif;">
-        <div style="text-align: center">
+    <body>
+        <div class="title-block">
             <span class="title">HUMAN RESOURCE MACHINE</span>
             <br />
-            <span class="subtitle">The Simulator</span>
+            <span class="subtitle">A Simulator</span>
         </div>
-        <div style="display: flex;">
-            <a style="text-align: center; width: 100%;" href="#instructions">Instructions</a>
-            <a style="text-align: center; width: 100%;" href="#opcode-reference">Programming Reference</a>
-            <a style="text-align: center; width: 100%;" href="#setup-instructions">Custom Levels</a>
+        <div class="toc">
+            <a class="toc-item" href="#instructions">Instructions</a>
+            <a class="toc-item" href="#opcode-reference">Programming Reference</a>
+            <a class="toc-item" href="#setup-instructions">Custom Levels</a>
         </div>
         <div id="level-selection">
             <label for="levels">Level: </label>
@@ -119,14 +139,14 @@
         <div id="setup-text-block" hidden>
         </div>
         <div id="machine">
-            <table style="width: 100%;">
+            <table>
                 <tr>
                     <th><label for="register">In hand: </label><input name="register" id="register" readonly></input></th>
                     <th><label for="count">Execution Steps: </label><input name="count" id="count" readonly></input></th>
                     <th><label for="length">Program Size: </label><input name="length" id="length" readonly></input></th>
                 </tr>
             </table>
-            <table style="width: 100%;">
+            <table>
                 <tr>
                     <th id="input-header">Inbox</th>
                     <th>Floor Tiles</th>
@@ -134,10 +154,10 @@
                     <th>Program</th>
                 </tr>
                 <tr>
-                    <td style="width: 0%;"><select id="input" class="list" size="25"></select></td>
-                    <td style="width: 0%;"><select id="memory" class="list" size="25"></select></td>
-                    <td style="width: 0%;"><select id="output" class="list" size="25"></select></td>
-                    <td><textarea id="program" class="code" rows="25" spellcheck="false"></textarea></td>
+                    <td class="list-block"><select id="input" class="list" size="25"></select></td>
+                    <td class="list-block"><select id="memory" class="list" size="25"></select></td>
+                    <td class="list-block"><select id="output" class="list" size="25"></select></td>
+                    <td><textarea id="program" class="code-block" rows="25" spellcheck="false"></textarea></td>
                 </tr>
             </table>
             <div class="control-bar">
@@ -151,7 +171,7 @@
         </div>
         <div id="messages">
             Messages:<br />
-            <select id="message-list" class="log" size="10" style="width: 100%;"></select>
+            <select id="message-list" class="log" size="10"></select>
         <div />
         <div id="instructions">
             <h2>Instructions</h2>
@@ -179,121 +199,121 @@
             <h2>Programming Reference</h2>
             <table>
                 <tr>
-                    <th colspan="2"><br />Input / Output</th>
+                    <th colspan="2"><h3><br />Input / Output</h3></th>
                 </tr>
                 <tr>
-                    <td>-- <i>comment</i></td>
+                    <td><code>-- <i>comment</i></code></td>
                     <td>Anything following "--" is not considered code, anywhere on a line</td>
                 </tr>
                 <tr>
-                    <td>INBOX</td>
+                    <td><code>INBOX</code></td>
                     <td>Pick up next value from the Inbox</td>
                 </tr>
                 <tr>
-                    <td>OUTBOX</td>
+                    <td><code>OUTBOX</code></td>
                     <td>Put currently held value in the Outbox</td>
                 </tr>
                 <tr>
-                    <td>COPYFROM <i>address</i></td>
+                    <td><code>COPYFROM <i>address</i></code></td>
                     <td>Pick up contents of tile at <i>address</i></td>
                 </tr>
                 <tr>
-                    <td>COPYTO <i>address</i></td>
+                    <td><code>COPYTO <i>address</i></code></td>
                     <td>Write currently held value on tile at <i>address</i></td>
                 </tr>
                 <tr>
-                    <th colspan="2"><br />Arithmetic</th>
+                    <th colspan="2"><h3><br />Arithmetic</h3></th>
                 </tr>
                 <tr>
-                    <td>ADD <i>address</i></td>
+                    <td><code>ADD <i>address</i></code></td>
                     <td>
                         Add contents of tile at <i>address</i> to currently held value<br />
                         <b>NOTE:</b> Only numbers can be added
                     </td>
                 </tr>
                 <tr>
-                    <td>SUB <i>address</i></td>
+                    <td><code>SUB <i>address</i></code></td>
                     <td>
                         Subtract contents of tile at <i>address</i> from currently held value<br />
-                        <b>NOTE:</b> Only numbers can be subtracted from numbers, or letters from letters
+                        <b>NOTE:</b> Numbers can only be subtracted from numbers, or letters from letters
                     </td>
                 </tr>
                 <tr>
-                    <td>BUMPUP <i>address</i></td>
+                    <td><code>BUMPUP <i>address</i></code></td>
                     <td>
                         Subtract one to the tile at <i>address</i> and pick up the result<br />
                         <b>NOTE:</b> Only numbers can be bumped
                     </td>
                 </tr>
                 <tr>
-                    <td>BUMPDN <i>address</i></td>
+                    <td><code>BUMPDN <i>address</i></code></td>
                     <td>
                         Subtract one from the tile at <i>address</i> and pick up the result<br />
                         <b>NOTE:</b> Only numbers can be bumped
                     </td>
                 </tr>
                 <tr>
-                    <th colspan="2"><br />Indirect Addressing</th>
+                    <th colspan="2"><h3><br />Indirect Addressing</h3></th>
                 </tr>
                 <tr>
-                    <td><i>command</i> [<i>address</i>]</td>
+                    <td><code><i>command</i> [<i>address</i>]</code></td>
                     <td>Access a tile whose address is written on tile at <i>address</i></td>
                 </tr>
                 <tr>
-                    <th colspan="2"><br />Branching</th>
+                    <th colspan="2"><h3><br />Branching</h3></th>
                 </tr>
                 <tr>
-                    <td><i>label</i>:</td>
+                    <td><code><i>label</i>:</code></td>
                     <td>Define a jump location named <i>label</i></td>
                 </tr>
                 <tr>
-                    <td>JUMP <i>label</i></td>
+                    <td><code>JUMP <i>label</i></code></td>
                     <td>Continue program execution from <i>label</i></td>
                 </tr>
                 <tr>
-                    <td>JUMPZ <i>label</i></td>
+                    <td><code>JUMPZ <i>label</i></code></td>
                     <td>
                         Jump to <i>label</i> if currently held value is zero<br />
                         <b>NOTE:</b> Does nothing unless the value in hand is a number
                     </td>
                 </tr>
                 <tr>
-                    <td>JUMPN <i>label</i></td>
+                    <td><code>JUMPN <i>label</i></code></td>
                     <td>
                         Jump to <i>label</i> if currently held value is negative<br />
                         <b>NOTE:</b> Does nothing unless the value in hand is a number
                     </td>
                 </tr>
                 <tr>
-                    <th colspan="2"><br />Tile naming</th>
+                    <th colspan="2"><h3><br />Tile naming</h3></th>
                 </tr>
                 <tr>
-                    <td>DEFINE LABEL <i>address</i> <i>label</i></td>
+                    <td><code>DEFINE LABEL <i>address</i> <i>label</i></code></td>
                     <td>Label the tile at <i>address</i></td>
                 </tr>
             </table>
         </div>
         <div id="setup-instructions">
             <h2>Custom Levels</h2>
-            Follow the template found in the included file: "res/level-data.json".
+            Follow the format found in the included file: <code>res/level-data.json</code>.
 
             The contents of floor tiles, either as:
             <ul>
                 <li>An array; values beyond the specified size will be ignored</li>
-                <li>An object with tile addresses as keys, e.g.: <pre>{ "24": 1, ... }</pre></li>
+                <li>An object with tile addresses as keys, e.g.: <code>{ "24": 1, ... }</code></li>
             </ul>
             Missing values will be left empty.
 
             The Floor Tiles, Inbox and Outbox may only contain the following:<br/>
             <ul>
                 <li>
-                    Empty values, e.g.: null, ""
+                    Empty values, e.g.: <code>null, ""</code>
                 </li>
                 <li>
-                    Integer numbers, e.g.: 10, "10"
+                    Integer numbers, e.g.: <code>10, "10"</code>
                 </li>
                 <li>
-                    Characters (A to Z), e.g.: "A", "B", etc.
+                    Characters (A to Z), e.g.: <code>"A", "B",</code> etc.
                 </li>
             </ul>
 
