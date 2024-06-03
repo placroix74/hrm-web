@@ -3,7 +3,7 @@
         <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Passion+One:wght@400;700;900&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Galindo&family=Lilita+One&family=Passion+One:wght@400;700;900&display=swap" rel="stylesheet">
         <style>
             .passion-one-regular {
                 font-family: "Passion One", sans-serif;
@@ -33,23 +33,24 @@
             }
 
             .title {
-                font-family: "Passion One", sans-serif;
+                font-family: "Lilita One", sans-serif;
                 font-size: xx-large;
                 font-weight: 700;
             }
 
             .subtitle {
-                font-family: "Passion One", sans-serif;
+                font-family: "Lilita One", sans-serif;
                 font-size: x-large;
-                font-weight: 700;
+                font-weight: 400;
             }
 
             h1, h2, h3, th {
-                font-family: "Passion One", sans-serif;
+                font-family: "Lilita One", sans-serif;
+                font-weight: 400;
             }
 
             #setup-text-block {
-                font-family: "Passion One", sans-serif;
+                font-family: "Lilita One", sans-serif;
             }
 
             #message-list {
@@ -164,6 +165,7 @@
                 <button id="reset" class="control" disabled>Stop</button>
                 <button id="step-back" class="control" disabled>&lt; Step</button>
                 <button id="run" class="control" disabled>Run &gt;&gt;</button>
+                <button id="break" class="control" hidden>Pause</button>
                 <button id="step" class="control" disabled>Step &gt;</button>
                 <label for="speed">Speed: </label>
                 <input id="speed" name="speed" type="range" min="0" max="10" value="0"/>
@@ -180,18 +182,19 @@
                 <li>Type/Paste your code into the "Program" text area</li>
                 <li>Execute your program:</li>
                 <ul>
-                    <li>To launch the program, press the "Run &gt;&gt;" button</li>
+                    <li>To launch the program, press <button class="control">Run &gt;&gt;</button></li>
                     <ul>
-                        <li>To break execution of the program, press any "Step" button</li>
+                        <li>To break execution of the program, press <button class="control">Pause</button></li>
                     </ul>
-                    <li>To execute your program one command at a time, press the "Step &gt;" button</li>
-                    <li>To roll back a command (once execution has begun), press the "&lt; Step" button</li>
-                    <li>To end execution and edit the program again, press the "Stop" button</li>
+                    <li>To execute one command at a time, press <button class="control">Step &gt;</button></li>
+                    <li>To roll back a command (once execution has begun), press <button class="control">&lt; Step</button></li>
+                    <li>To end execution and edit the program again, press <button class="control">Stop</button></li>
                 </ul>
                 <li>Execution of the program stops automatically if:</li>
                 <ul>
                     <li>A runtime error occurs; a description of the error will appear in the "Messages" list</li>
-                    <li>There is no more data to read from the Inbox, i.e. the program has run successfully to completion</li>
+                    <li>There is nothing left to pick up from the Inbox</li>
+                    <li>The end of the program is reached</li>
                 </ul>
             </ol>
         </div>
@@ -509,6 +512,13 @@
                         oneStep();
                     } break;
 
+                    case "break": {
+                        window.hrmMachine.run = "manual";
+                        if (breakExecution()) {
+                            break;
+                        }
+                    } break;
+
                     case "step": {
                         window.hrmMachine.run = "manual";
                         if (breakExecution()) {
@@ -573,6 +583,8 @@
                         $("#reset")[0].setAttribute("disabled", "");
                         $("#step-back")[0].setAttribute("disabled", "");
                         $("#run")[0].removeAttribute("disabled");
+                        $("#run")[0].removeAttribute("hidden");
+                        $("#break")[0].setAttribute("hidden", "");
 
                         $("#program")[0].removeAttribute("readonly");
                     } else {
@@ -585,9 +597,11 @@
                         }
 
                         if (machine.run == "auto") {
-                            $("#run")[0].setAttribute("disabled", "");
+                            $("#run")[0].setAttribute("hidden", "");
+                            $("#break")[0].removeAttribute("hidden");
                         } else {
-                            $("#run")[0].removeAttribute("disabled");
+                            $("#run")[0].removeAttribute("hidden");
+                            $("#break")[0].setAttribute("hidden", "");
                         }
 
                         $("#program")[0].setAttribute("readonly", "");
