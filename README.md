@@ -5,9 +5,17 @@ An interactive, browser-based [Human Resource Machine](https://tomorrowcorporati
 The game did not come with [a level editor](https://steamcommunity.com/app/375820/discussions/0/351659808488235380/).
 
 ## Related Projects
-- https://github.com/eruvanos/hrm_python
-- https://github.com/sixlettervariables/hrmsandbox
-- https://github.com/codec-abc/human-resource-machine-program-evaluator-fable-version
+| Project   |  Platform / Technology  |  Remarks  |
+| --------- | ----------------------- | --------- |
+| [eruvanos/hrm_python](https://github.com/eruvanos/hrm_python) | Desktop / Python GUI | |
+| [sixlettervariables/hrmsandbox](https://github.com/sixlettervariables/hrmsandbox) | Web / node.js | No stepping controls |
+| [codec-abc/human-resource-machine-program-evaluator-fable-version](https://github.com/codec-abc/human-resource-machine-program-evaluator-fable-version) | Web / node.js | No stepping controls, but all program steps can be viewed |
+| [kekekawaii2839/HumanResourceMachine](https://github.com/kekekawaii2839/HumanResourceMachine) | Desktop / Qt | |
+| [vncsms/HumanResourceMachine](https://github.com/vncsms/HumanResourceMachine) | Web / React.js | |
+| [leroidangleterre/HumanResourceMachine](https://github.com/leroidangleterre/HumanResourceMachine) | Desktop / Java AWT | |
+| [Jev-git/Godot-HumanResourceMachine](https://github.com/Jev-git/Godot-HumanResourceMachine) | Desktop / Godot | |
+| [JosePedroDias/hrm](https://github.com/JosePedroDias/hrm) | Web / HTML/CSS/js | |
+| [nrkn/hrm-tools](https://github.com/nrkn/hrm-tools) | Web / HTML/CSS/js | |
 
 ## Features
 - Everything on _one page_ : software and help text.
@@ -29,7 +37,7 @@ The game did not come with [a level editor](https://steamcommunity.com/app/37582
 
 ## Tech
 - HTML/CSS
-- Javascript
+- JavaScript
 - [jQuery](https://jquery.com/)
 
 ## Thanks
