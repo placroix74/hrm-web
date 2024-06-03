@@ -1,4 +1,4 @@
-# Human Resource Machine : The Simulator
+# Human Resource Machine : A Simulator
 An interactive, browser-based [Human Resource Machine](https://tomorrowcorporation.com/humanresourcemachine) simulator.
 
 ## Why?
